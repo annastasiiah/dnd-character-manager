@@ -10,3 +10,4 @@ app = FastAPI()
 def test_db(db: Session = Depends(get_db)):
     row = db.execute(text(('SELECT 1')))
     return {'result': row.scalar()}
+

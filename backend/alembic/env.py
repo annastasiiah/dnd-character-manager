@@ -3,6 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 
 from database import Base, engine
+
+from models.user import User
+from models.character import Character
 from models.race import Race
 
 # this is the Alembic Config object, which provides
