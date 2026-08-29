@@ -15,6 +15,7 @@ from models.character import Character
 from models.race import Race
 
 from schemas.user import UserCreate, UserResponse, UserLogin, TokenResponse
+from schemas.character import CharacterCreate, CharacterResponse
 from security import hash_password, verify_password, create_access_token
 
 from database import get_db
@@ -119,3 +120,38 @@ def get_current_user(token: str = Depends(oauth2_scheme),db: Session = Depends(g
 
     return current_user
 
+@app.post("/characters", response_model=CharacterResponse)
+def create_character(
+    character: CharacterCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    race = db.query(Race).filter(
+            Race.id == character.race_id
+            ).first()
+    
+    if not race:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Race not found"
+        )
+    
+    new_character = Character(
+        name = character.name,
+        race_id = character.race_id,
+        level = character.level,
+        strength = character.strength,
+        dexterity = character.dexterity,
+        constitution = character.constitution,
+        intelligence = character.intelligence,
+        wisdom = character.wisdom,
+        charisma = character.charisma,
+        user_id = current_user.id
+    )
+
+
+    db.add(new_character)
+    db.commit()
+    db.refresh(new_character)
+    
+    return new_character
