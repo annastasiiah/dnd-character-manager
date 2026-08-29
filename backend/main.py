@@ -1,23 +1,16 @@
 from fastapi import Depends, FastAPI, status, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 
 from models.user import User
 from models.character import Character
 from models.race import Race
 
-from schemas.user import UserCreate, UserResponse
-from security import hash_password
-
+from schemas.user import UserCreate, UserResponse, UserLogin, TokenResponse
+from security import hash_password, verify_password, create_access_token
 
 from database import get_db
 
 app = FastAPI()
-
-@app.get("/db")
-def test_db(db: Session = Depends(get_db)):
-    row = db.execute(text(('SELECT 1')))
-    return {'result': row.scalar()}
 
 @app.post("/users/registration", 
         response_model = UserResponse, 
@@ -58,3 +51,32 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
+@app.post("/users/login", response_model=TokenResponse)
+def login_user(user: UserLogin, db: Session = Depends(get_db)):
+
+    existing_login = db.query(User).filter(
+        User.email == user.email
+        ).first()
+
+    if not existing_login:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password"
+            )
+    
+    if not verify_password(user.password, existing_login.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password"
+            )
+    
+    access_token = create_access_token(
+        data={
+            "sub": str(existing_login.id),
+            "role": existing_login.role
+        }
+    )
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
