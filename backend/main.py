@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
+
 from database import get_db
 
 app = FastAPI()
