@@ -19,9 +19,7 @@ def test_get_characters_with_token(client, test_user):
 
     response = client.get(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 200

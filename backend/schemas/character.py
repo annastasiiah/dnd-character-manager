@@ -15,6 +15,7 @@ class CharacterCreate(BaseModel):
     wisdom: int = Field(ge=1, le=30)
     charisma: int = Field(ge=1, le=30)
 
+
 class CharacterResponse(BaseModel):
     id: int
     name: str
@@ -32,6 +33,7 @@ class CharacterResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class CharacterUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=50)

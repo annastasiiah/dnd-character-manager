@@ -13,9 +13,7 @@ def test_create_character(client, test_user, test_races):
 
     response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Arwen",
             "race_id": race.id,
@@ -39,6 +37,7 @@ def test_create_character(client, test_user, test_races):
     assert data["strength"] == 10
     assert data["charisma"] == 15
 
+
 def test_get_characters(client, test_user, test_races):
     login_response = client.post(
         "/users/login",
@@ -54,9 +53,7 @@ def test_get_characters(client, test_user, test_races):
 
     create_response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Arwen",
             "race_id": race.id,
@@ -74,9 +71,7 @@ def test_get_characters(client, test_user, test_races):
 
     response = client.get(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 200
@@ -87,6 +82,7 @@ def test_get_characters(client, test_user, test_races):
     assert data[0]["name"] == "Arwen"
     assert data[0]["race_id"] == race.id
     assert data[0]["level"] == 5
+
 
 def test_get_character(client, test_user, test_races):
     login_response = client.post(
@@ -103,9 +99,7 @@ def test_get_character(client, test_user, test_races):
 
     create_response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Arwen",
             "race_id": race.id,
@@ -125,9 +119,7 @@ def test_get_character(client, test_user, test_races):
 
     response = client.get(
         f"/characters/{character_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 200
@@ -138,6 +130,7 @@ def test_get_character(client, test_user, test_races):
     assert data["name"] == "Arwen"
     assert data["race_id"] == race.id
     assert data["level"] == 5
+
 
 def test_user_cannot_get_another_users_character(
     client,
@@ -158,9 +151,7 @@ def test_user_cannot_get_another_users_character(
 
     create_response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Arwen",
             "race_id": race.id,
@@ -203,13 +194,12 @@ def test_user_cannot_get_another_users_character(
 
     response = client.get(
         f"/characters/{character_id}",
-        headers={
-            "Authorization": f"Bearer {second_token}"
-        },
+        headers={"Authorization": f"Bearer {second_token}"},
     )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Character not found"
+
 
 def test_update_character(client, test_user, test_races):
     login_response = client.post(
@@ -225,9 +215,7 @@ def test_update_character(client, test_user, test_races):
 
     create_response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Arwen",
             "race_id": race.id,
@@ -245,9 +233,7 @@ def test_update_character(client, test_user, test_races):
 
     response = client.patch(
         f"/characters/{character_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Arwen Evenstar",
             "level": 10,
@@ -267,6 +253,7 @@ def test_update_character(client, test_user, test_races):
     assert data["dexterity"] == 14
     assert data["charisma"] == 15
 
+
 def test_update_character_with_invalid_race(
     client,
     test_user,
@@ -285,9 +272,7 @@ def test_update_character_with_invalid_race(
 
     create_response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Arwen",
             "race_id": race.id,
@@ -307,9 +292,7 @@ def test_update_character_with_invalid_race(
 
     response = client.patch(
         f"/characters/{character_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "race_id": 999,
         },
@@ -317,6 +300,7 @@ def test_update_character_with_invalid_race(
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Race not found"
+
 
 def test_delete_character(client, test_user, test_races):
     login_response = client.post(
@@ -332,9 +316,7 @@ def test_delete_character(client, test_user, test_races):
 
     create_response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Arwen",
             "race_id": race.id,
@@ -354,22 +336,19 @@ def test_delete_character(client, test_user, test_races):
 
     response = client.delete(
         f"/characters/{character_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 204
 
     get_response = client.get(
         f"/characters/{character_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert get_response.status_code == 404
     assert get_response.json()["detail"] == "Character not found"
+
 
 def test_create_character_validation(client, test_user, test_races):
     login_response = client.post(
@@ -385,9 +364,7 @@ def test_create_character_validation(client, test_user, test_races):
 
     response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Invalid Character",
             "race_id": race.id,
@@ -402,6 +379,7 @@ def test_create_character_validation(client, test_user, test_races):
     )
 
     assert response.status_code == 422
+
 
 def test_create_character_with_ability_score_below_min(
     client,
@@ -421,9 +399,7 @@ def test_create_character_with_ability_score_below_min(
 
     response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Invalid Character",
             "race_id": race.id,
@@ -458,9 +434,7 @@ def test_create_character_with_ability_score_above_max(
 
     response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Invalid Character",
             "race_id": race.id,
@@ -475,6 +449,7 @@ def test_create_character_with_ability_score_above_max(
     )
 
     assert response.status_code == 422
+
 
 def test_update_character_validation(
     client,
@@ -494,9 +469,7 @@ def test_update_character_validation(
 
     create_response = client.post(
         "/characters",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "name": "Arwen",
             "race_id": race.id,
@@ -516,9 +489,7 @@ def test_update_character_validation(
 
     response = client.patch(
         f"/characters/{character_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "level": 21,
         },

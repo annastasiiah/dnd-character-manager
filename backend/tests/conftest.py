@@ -13,7 +13,7 @@ from security import hash_password
 
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
-    "postgresql+psycopg://dnd_user:12345@localhost:5432/dnd_manager_test"
+    "postgresql+psycopg://dnd_user:12345@localhost:5432/dnd_manager_test",
 )
 
 test_engine = create_engine(TEST_DATABASE_URL)
@@ -85,7 +85,8 @@ def test_user(db):
     db.commit()
     db.refresh(user)
 
-    return user 
+    return user
+
 
 @pytest.fixture
 def test_admin(db):

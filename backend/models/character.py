@@ -10,22 +10,14 @@ if TYPE_CHECKING:
     from models.race import Race
     from models.user import User
 
+
 class Character(Base):
     __tablename__ = "characters"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
-        nullable=False
-        )
-    race_id: Mapped[int] = mapped_column(
-        ForeignKey("races.id"),
-        nullable=False
-        )
-    name: Mapped[str] = mapped_column(
-        String(50), 
-        nullable=False
-        )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    race_id: Mapped[int] = mapped_column(ForeignKey("races.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
     level: Mapped[int] = mapped_column(nullable=False)
     strength: Mapped[int] = mapped_column(nullable=False)
     dexterity: Mapped[int] = mapped_column(nullable=False)
@@ -33,20 +25,11 @@ class Character(Base):
     intelligence: Mapped[int] = mapped_column(nullable=False)
     wisdom: Mapped[int] = mapped_column(nullable=False)
     charisma: Mapped[int] = mapped_column(nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC)
-        )
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC),
-        onupdate=lambda: datetime.now(UTC)
+        default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
     )
 
-    user: Mapped["User"] = relationship(
-        "User",
-        back_populates="characters"
-        )
+    user: Mapped["User"] = relationship("User", back_populates="characters")
 
-    race: Mapped["Race"] = relationship(
-        "Race",
-        back_populates="characters"
-    )
+    race: Mapped["Race"] = relationship("Race", back_populates="characters")

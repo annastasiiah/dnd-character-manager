@@ -55,9 +55,9 @@ def seed_races():
 
     try:
         for race_data in RACES:
-            existing_race = db.query(Race).filter(
-                Race.name == race_data["name"]
-            ).first()
+            existing_race = (
+                db.query(Race).filter(Race.name == race_data["name"]).first()
+            )
 
             if existing_race:
                 continue
