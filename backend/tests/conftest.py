@@ -87,3 +87,18 @@ def test_user(db):
     db.refresh(user)
 
     return user 
+
+@pytest.fixture
+def test_admin(db):
+    admin = User(
+        email="admin@example.com",
+        nickname="admin",
+        password_hash=hash_password("password123"),
+        role="admin",
+    )
+
+    db.add(admin)
+    db.commit()
+    db.refresh(admin)
+
+    return admin

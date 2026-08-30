@@ -370,3 +370,158 @@ def test_delete_character(client, test_user, test_races):
 
     assert get_response.status_code == 404
     assert get_response.json()["detail"] == "Character not found"
+
+def test_create_character_validation(client, test_user, test_races):
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": test_user.email,
+            "password": "password123",
+        },
+    )
+
+    token = login_response.json()["access_token"]
+    race = test_races[0]
+
+    response = client.post(
+        "/characters",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "name": "Invalid Character",
+            "race_id": race.id,
+            "level": 21,
+            "strength": 10,
+            "dexterity": 14,
+            "constitution": 12,
+            "intelligence": 16,
+            "wisdom": 13,
+            "charisma": 15,
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_create_character_with_ability_score_below_min(
+    client,
+    test_user,
+    test_races,
+):
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": test_user.email,
+            "password": "password123",
+        },
+    )
+
+    token = login_response.json()["access_token"]
+    race = test_races[0]
+
+    response = client.post(
+        "/characters",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "name": "Invalid Character",
+            "race_id": race.id,
+            "level": 1,
+            "strength": 0,
+            "dexterity": 10,
+            "constitution": 10,
+            "intelligence": 10,
+            "wisdom": 10,
+            "charisma": 10,
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_character_with_ability_score_above_max(
+    client,
+    test_user,
+    test_races,
+):
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": test_user.email,
+            "password": "password123",
+        },
+    )
+
+    token = login_response.json()["access_token"]
+    race = test_races[0]
+
+    response = client.post(
+        "/characters",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "name": "Invalid Character",
+            "race_id": race.id,
+            "level": 1,
+            "strength": 31,
+            "dexterity": 10,
+            "constitution": 10,
+            "intelligence": 10,
+            "wisdom": 10,
+            "charisma": 10,
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_update_character_validation(
+    client,
+    test_user,
+    test_races,
+):
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": test_user.email,
+            "password": "password123",
+        },
+    )
+
+    token = login_response.json()["access_token"]
+    race = test_races[0]
+
+    create_response = client.post(
+        "/characters",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "name": "Arwen",
+            "race_id": race.id,
+            "level": 5,
+            "strength": 10,
+            "dexterity": 14,
+            "constitution": 12,
+            "intelligence": 16,
+            "wisdom": 13,
+            "charisma": 15,
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    character_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/characters/{character_id}",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "level": 21,
+        },
+    )
+
+    assert response.status_code == 422
