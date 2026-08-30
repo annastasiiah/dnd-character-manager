@@ -1,6 +1,6 @@
 from fastapi import Depends, FastAPI, status, HTTPException
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
 from jwt.exceptions import InvalidTokenError
 from security import (
@@ -65,10 +65,13 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 @app.post("/users/login", response_model=TokenResponse)
-def login_user(user: UserLogin, db: Session = Depends(get_db)):
+def login_user(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
 
     existing_login = db.query(User).filter(
-        User.email == user.email
+        User.email == form_data.username
         ).first()
 
     if not existing_login:
@@ -77,7 +80,7 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
                 detail="Incorrect email or password"
             )
     
-    if not verify_password(user.password, existing_login.password_hash):
+    if not verify_password(form_data.password, existing_login.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
@@ -110,11 +113,14 @@ def get_current_user(token: str = Depends(oauth2_scheme),db: Session = Depends(g
         )
 
     user_id = payload.get('sub')
+    
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token"
         )
+    
+    user_id = int(user_id)
     
     current_user = db.query(User).filter(
         User.id == user_id
@@ -380,3 +386,30 @@ def delete_character(character_id: int,
     db.commit()
 
     return None
+
+# =========================
+# RACES
+# =========================
+
+@app.get("/races")
+def get_races(
+    db: Session = Depends(get_db)
+):
+    races = db.query(Race).order_by(Race.id).all()
+
+    return races
+
+@app.get("/races/{race_id}")
+def get_race(
+    race_id: int,
+    db: Session = Depends(get_db)
+):
+    race = db.query(Race).where(Race.id == race_id).first()
+
+    if not race:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Race not found"
+            )
+
+    return race

@@ -32,13 +32,13 @@ class CharacterResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class CharacterUpdate(BaseModel):
-    name: str | None = None
+    name: str | None = Field(None, min_length=1, max_length=50)
     race_id: int | None = None
-    level: int | None = None
-    
-    strength: int | None = None
-    dexterity: int | None = None
-    constitution: int | None = None
-    intelligence: int | None = None
-    wisdom: int | None = None
-    charisma: int | None = None
+    level: int | None = Field(None, ge=1, le=20)
+
+    strength: int | None = Field(None, ge=1, le=30)
+    dexterity: int | None = Field(None, ge=1, le=30)
+    constitution: int | None = Field(None, ge=1, le=30)
+    intelligence: int | None = Field(None, ge=1, le=30)
+    wisdom: int | None = Field(None, ge=1, le=30)
+    charisma: int | None = Field(None, ge=1, le=30)
