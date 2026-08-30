@@ -1,5 +1,6 @@
 from models.user import User
 
+
 def test_registration(client, db):
     response = client.post(
         "/users/registration",

@@ -1,5 +1,7 @@
-from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class CharacterCreate(BaseModel):
     name: str = Field(min_length=1, max_length=50)

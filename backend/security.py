@@ -1,9 +1,9 @@
 import os
-import jwt
+from datetime import UTC, datetime, timedelta
 
-from pwdlib import PasswordHash
+import jwt
 from dotenv import load_dotenv
-from datetime import datetime, timedelta, timezone
+from pwdlib import PasswordHash
 
 load_dotenv()
 
@@ -17,7 +17,7 @@ ALGORITHM = "HS256"
 def create_access_token(data: dict):    
     to_encode = data.copy()
 
-    expire = datetime.now(timezone.utc) + timedelta(minutes=30)
+    expire = datetime.now(UTC) + timedelta(minutes=30)
     to_encode.update({"exp": expire})
 
     encoded_jwt = jwt.encode(

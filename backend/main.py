@@ -1,8 +1,15 @@
-from fastapi import Depends, FastAPI, status, HTTPException
-from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
+from sqlalchemy.orm import Session
+
+from database import get_db
+from models.character import Character
+from models.race import Race
+from models.user import User
+from schemas.character import CharacterCreate, CharacterResponse, CharacterUpdate
+from schemas.user import TokenResponse, UserCreate, UserResponse, UserUpdate
 from security import (
     ALGORITHM,
     SECRET_KEY,
@@ -10,14 +17,6 @@ from security import (
     hash_password,
     verify_password,
 )
-from models.user import User
-from models.character import Character
-from models.race import Race
-
-from schemas.user import UserCreate, UserResponse, UserLogin, UserUpdate, TokenResponse
-from schemas.character import CharacterCreate, CharacterResponse, CharacterUpdate
-
-from database import get_db
 
 app = FastAPI()
 
@@ -246,7 +245,6 @@ def delete_user(user_id: int,
     db.delete(user)
     db.commit()
 
-    return None
 
 
 # =========================
@@ -385,7 +383,6 @@ def delete_character(character_id: int,
     db.delete(character)
     db.commit()
 
-    return None
 
 # =========================
 # RACES

@@ -1,11 +1,10 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from models.character import Character
@@ -34,7 +33,7 @@ class User(Base):
         nullable=False
         )
     created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(timezone.utc)
+        default=lambda: datetime.now(UTC)
         )
     characters: Mapped[list["Character"]] = relationship(
         "Character",

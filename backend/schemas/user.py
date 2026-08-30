@@ -1,6 +1,8 @@
-from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from datetime import datetime
 from enum import Enum
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
 
 class UserCreate(BaseModel):
     email: EmailStr
