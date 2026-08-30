@@ -167,3 +167,23 @@ def get_characters(
         ).all()
     
     return characters
+
+@app.get("/characters/{character_id}", response_model=CharacterResponse)
+def get_character(
+    character_id: int,
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+    ):
+
+    character = db.query(Character).where(
+        Character.id == character_id, 
+        Character.user_id == current_user.id
+        ).first()
+
+    if not character:
+        raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Character not found"
+                )
+
+    return character
