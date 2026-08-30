@@ -155,3 +155,15 @@ def create_character(
     db.refresh(new_character)
     
     return new_character
+
+@app.get("/characters", response_model = list[CharacterResponse])
+def get_characters(
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+    ):
+
+    characters = db.query(Character).filter(
+        Character.user_id == current_user.id
+        ).all()
+    
+    return characters
