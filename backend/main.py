@@ -397,7 +397,7 @@ def get_races(
 ):
     races = db.query(Race).order_by(Race.id).all()
 
-    return races
+    return races    
 
 @app.get("/races/{race_id}")
 def get_race(
