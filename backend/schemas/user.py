@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from datetime import datetime
+from enum import Enum
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -14,6 +15,15 @@ class UserResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
+
+class UserUpdate(BaseModel):
+    email: EmailStr | None = None
+    nickname: str | None = Field(None, min_length=1, max_length=50)
+    role: UserRole | None = None
 
 class UserLogin(BaseModel):
     email: EmailStr

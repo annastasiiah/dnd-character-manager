@@ -36,9 +36,8 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc)
         )
-
     characters: Mapped[list["Character"]] = relationship(
         "Character",
-        back_populates="user"
+        back_populates="user",
+        cascade="all, delete-orphan"
     )
-
