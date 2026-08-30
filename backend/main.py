@@ -1,18 +1,16 @@
-import jwt
+
 from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jwt.exceptions import InvalidTokenError
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from database import get_db
+from dependencies.auth import get_current_admin, get_current_user
 from models.character import Character
 from models.race import Race
 from models.user import User
 from schemas.character import CharacterCreate, CharacterResponse, CharacterUpdate
 from schemas.user import TokenResponse, UserCreate, UserResponse, UserUpdate
 from security import (
-    ALGORITHM,
-    SECRET_KEY,
     create_access_token,
     hash_password,
     verify_password,
@@ -95,51 +93,6 @@ def login_user(
         "access_token": access_token,
         "token_type": "bearer"
     }
-
-# =========================
-# DEPENDENCIES
-# =========================
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
-
-def get_current_user(token: str = Depends(oauth2_scheme),db: Session = Depends(get_db)):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
-        )
-
-    user_id = payload.get('sub')
-    
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
-        )
-    
-    user_id = int(user_id)
-    
-    current_user = db.query(User).filter(
-        User.id == user_id
-        ).first()
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
-        )
-
-    return current_user
-
-def get_current_admin(current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
-
-    return current_user
 
 # =========================
 # ADMIN
