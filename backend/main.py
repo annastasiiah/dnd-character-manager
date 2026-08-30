@@ -231,3 +231,25 @@ def edit_character(character_id: int,
     db.refresh(character)
 
     return character
+
+@app.delete("/characters/{character_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_character(character_id: int,
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+    ):
+
+    character = db.query(Character).where(
+        Character.id == character_id, 
+        Character.user_id == current_user.id
+        ).first()
+    
+    if not character:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+        )
+
+    db.delete(character)
+    db.commit()
+
+    return None
