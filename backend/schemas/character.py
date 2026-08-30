@@ -31,3 +31,14 @@ class CharacterResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class CharacterUpdate(BaseModel):
+    name: str | None = None
+    race_id: int | None = None
+    level: int | None = None
+    
+    strength: int | None = None
+    dexterity: int | None = None
+    constitution: int | None = None
+    intelligence: int | None = None
+    wisdom: int | None = None
+    charisma: int | None = None

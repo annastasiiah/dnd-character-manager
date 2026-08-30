@@ -15,7 +15,7 @@ from models.character import Character
 from models.race import Race
 
 from schemas.user import UserCreate, UserResponse, UserLogin, TokenResponse
-from schemas.character import CharacterCreate, CharacterResponse
+from schemas.character import CharacterCreate, CharacterResponse, CharacterUpdate
 from security import hash_password, verify_password, create_access_token
 
 from database import get_db
@@ -182,8 +182,52 @@ def get_character(
 
     if not character:
         raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Character not found"
-                )
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+            )
+
+    return character
+
+@app.patch("/characters/{character_id}", response_model=CharacterResponse)
+def edit_character(character_id: int,
+    character_update: CharacterUpdate,
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+    ):
+
+    character = db.query(Character).where(
+        Character.id == character_id, 
+        Character.user_id == current_user.id
+        ).first()
+
+    if not character:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+            )
+
+    update_data = character_update.model_dump(exclude_unset=True)
+
+    if not update_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No fields to update"
+        )
+
+    if "race_id" in update_data:
+        race = db.query(Race).filter(
+            Race.id == update_data["race_id"]
+            ).first()
+        if not race:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Race not found"
+            )
+
+    for field, value in update_data.items():
+        setattr(character, field, value)
+
+    db.commit()
+    db.refresh(character)
 
     return character
