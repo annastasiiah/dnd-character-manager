@@ -9,6 +9,9 @@ from models.user import User
 from schemas.character import CharacterCreate, CharacterResponse, CharacterUpdate
 from models.character_class import CharacterClass
 from models.background import CharacterBackground
+from schemas.spell import SpellResponse
+from models.spell import Spell
+from models.character_spell import CharacterSpell, CharacterSpellCreate
 
 router = APIRouter()
 
@@ -142,7 +145,7 @@ def edit_character(
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail="Race not found"
                 )
-    
+
     if "background_id" in update_data:
             background = db.query(CharacterBackground).filter(CharacterBackground.id == update_data["background_id"]).first()
             if not background:
@@ -163,7 +166,7 @@ def edit_character(
 def delete_character(
     character_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
 
     character = (
@@ -179,3 +182,151 @@ def delete_character(
 
     db.delete(character)
     db.commit()
+
+@router.get(
+    "/characters/{character_id}/spells",
+    response_model=list[SpellResponse],
+)
+def get_spells(
+    character_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    character = (
+        db.query(Character)
+        .where(
+            Character.id == character_id,
+            Character.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if not character:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found",
+        )
+
+    spells = (
+        db.query(Spell)
+        .join(CharacterSpell, CharacterSpell.spell_id == Spell.id)
+        .filter(CharacterSpell.character_id == character_id)
+        .all()
+    )
+
+    return spells
+
+@router.post("/characters/{character_id}/spells", response_model=SpellResponse)
+def add_spell(
+        character_id: int,
+        spell_data: CharacterSpellCreate,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+    ):
+
+    character = (
+            db.query(Character)
+            .where(
+                Character.id == character_id,
+                Character.user_id == current_user.id,
+            )
+            .first()
+        )
+
+    if not character:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found",
+    )
+
+    character_spell = (
+        db.query(CharacterSpell)
+        .where(
+            CharacterSpell.character_id == character_id,
+            CharacterSpell.spell_id == spell_data.spell_id,
+        )
+        .first()
+    )
+
+    if character_spell:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Spell already added to character",
+        )
+
+    spell = (
+            db.query(Spell)
+            .where(Spell.id == spell_data.spell_id)
+            .first()
+        )
+
+    if not spell:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Spell not found",
+            )
+
+    character_spell = CharacterSpell(
+    character_id=character_id,
+    spell_id=spell_data.spell_id,
+    )
+
+    db.add(character_spell)
+    db.commit()
+
+    return spell
+
+@router.delete("/characters/{character_id}/spells/{spell_id}", response_model=SpellResponse)
+def delete_spell(
+        character_id: int,
+        spell_id: int,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+    ):
+
+    character = (
+            db.query(Character)
+            .where(
+                Character.id == character_id,
+                Character.user_id == current_user.id,
+            )
+            .first()
+        )
+
+    if not character:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found",
+    )
+
+    spell = (
+                db.query(Spell)
+                .where(Spell.id == spell_id)
+                .first()
+            )
+    
+    if not spell:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Spell not found",
+        )
+    
+    character_spell = (
+    db.query(CharacterSpell)
+    .where(
+        CharacterSpell.character_id == character_id,
+        CharacterSpell.spell_id == spell_id,
+    )
+    .first()
+)
+    if not character_spell:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Spell not found for this character",
+        )
+    
+    db.delete(character_spell)
+    db.commit()
+    
+    return spell
+

@@ -13,3 +13,6 @@ class SpellResponse(BaseModel):
     description: str
 
     model_config = ConfigDict(from_attributes=True)
+
+class CharacterSpellCreate(BaseModel):
+    spell_id: int
