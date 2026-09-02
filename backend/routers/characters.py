@@ -7,6 +7,8 @@ from models.character import Character
 from models.race import Race
 from models.user import User
 from schemas.character import CharacterCreate, CharacterResponse, CharacterUpdate
+from models.character_class import CharacterClass
+from models.background import CharacterBackground
 
 router = APIRouter()
 
@@ -24,9 +26,35 @@ def create_character(
             status_code=status.HTTP_404_NOT_FOUND, detail="Race not found"
         )
 
+    class_ = (
+    db.query(CharacterClass)
+    .filter(CharacterClass.id == character.class_id)
+    .first()
+)
+
+    if not class_:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character class not found",
+        )
+
+    background = (
+        db.query(CharacterBackground)
+        .filter(CharacterBackground.id == character.background_id)
+        .first()
+    )
+
+    if not background:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Background not found",
+        )
+
     new_character = Character(
         name=character.name,
         race_id=character.race_id,
+        class_id=character.class_id,
+        background_id=character.background_id,
         level=character.level,
         strength=character.strength,
         dexterity=character.dexterity,
@@ -35,6 +63,7 @@ def create_character(
         wisdom=character.wisdom,
         charisma=character.charisma,
         user_id=current_user.id,
+
     )
 
     db.add(new_character)
@@ -101,12 +130,25 @@ def edit_character(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update"
         )
 
-    if "race_id" in update_data:
-        race = db.query(Race).filter(Race.id == update_data["race_id"]).first()
-        if not race:
+    if "class_id" in update_data:
+        charclass = db.query(CharacterClass).filter(CharacterClass.id == update_data["class_id"]).first()
+        if not charclass:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Race not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Class not found"
             )
+    if "race_id" in update_data:
+            race = db.query(Race).filter(Race.id == update_data["race_id"]).first()
+            if not race:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Race not found"
+                )
+    
+    if "background_id" in update_data:
+            background = db.query(CharacterBackground).filter(CharacterBackground.id == update_data["background_id"]).first()
+            if not background:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Background not found"
+                )
 
     for field, value in update_data.items():
         setattr(character, field, value)

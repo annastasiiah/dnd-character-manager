@@ -7,11 +7,13 @@ class CharacterCreate(BaseModel):
     name: str = Field(min_length=1, max_length=50)
     race_id: int
     level: int = Field(ge=1, le=20)
+    class_id: int
+    background_id: int
 
     strength: int = Field(ge=1, le=30)
     dexterity: int = Field(ge=1, le=30)
     constitution: int = Field(ge=1, le=30)
-    intelligence: int = Field(ge=1, le=30)
+    intelligence: int = Field(ge=1, le=30)  
     wisdom: int = Field(ge=1, le=30)
     charisma: int = Field(ge=1, le=30)
 
@@ -20,6 +22,8 @@ class CharacterResponse(BaseModel):
     id: int
     name: str
     race_id: int
+    class_id: int
+    background_id: int
     level: int
 
     strength: int
@@ -38,6 +42,8 @@ class CharacterResponse(BaseModel):
 class CharacterUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=50)
     race_id: int | None = None
+    class_id: int | None = None
+    background_id: int | None = None
     level: int | None = Field(None, ge=1, le=20)
 
     strength: int | None = Field(None, ge=1, le=30)
