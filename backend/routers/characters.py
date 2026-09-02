@@ -11,7 +11,8 @@ from models.character_class import CharacterClass
 from models.background import CharacterBackground
 from schemas.spell import SpellResponse
 from models.spell import Spell
-from models.character_spell import CharacterSpell, CharacterSpellCreate
+from models.character_spell import CharacterSpell
+from schemas.spell import CharacterSpellCreate
 
 router = APIRouter()
 
