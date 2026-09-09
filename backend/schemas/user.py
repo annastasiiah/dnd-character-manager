@@ -31,6 +31,14 @@ class UserUpdate(BaseModel):
     role: UserRole | None = None
 
 
+class UserSelfUpdate(BaseModel):
+    """Fields a user may change on their own account. Deliberately has no
+    `role`, so a user cannot promote themselves via PATCH /users/me."""
+
+    email: EmailStr | None = None
+    nickname: str | None = Field(None, min_length=1, max_length=50)
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
