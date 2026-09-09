@@ -29,7 +29,7 @@ def get_race(race_id: int, db: Session = Depends(get_db)):
     return race
 
 @router.post(
-    "/race",
+    "/races",
     response_model=RaceResponse,
 )
 def create_race(
