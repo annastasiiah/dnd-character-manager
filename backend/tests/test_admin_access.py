@@ -76,7 +76,7 @@ def test_deleting_a_user_removes_their_characters(
         json=character_payload,
     )
 
-    assert create_response.status_code == 200
+    assert create_response.status_code == 201
 
     character_id = create_response.json()["id"]
 
@@ -88,3 +88,40 @@ def test_deleting_a_user_removes_their_characters(
     assert delete_response.status_code == 204
 
     assert db.query(Character).filter(Character.id == character_id).first() is None
+
+
+def test_admin_can_reset_a_password(client, admin_headers, test_user):
+    """An admin resets without knowing the old password."""
+    response = client.patch(
+        f"/admin/users/{test_user.id}",
+        headers=admin_headers,
+        json={"password": "reset-by-an-admin"},
+    )
+
+    assert response.status_code == 200
+    assert "password" not in response.json()
+
+    assert (
+        client.post(
+            "/users/login",
+            data={"username": test_user.email, "password": "password123"},
+        ).status_code
+        == 401
+    )
+    assert (
+        client.post(
+            "/users/login",
+            data={"username": test_user.email, "password": "reset-by-an-admin"},
+        ).status_code
+        == 200
+    )
+
+
+def test_admin_password_reset_respects_minimum_length(client, admin_headers, test_user):
+    response = client.patch(
+        f"/admin/users/{test_user.id}",
+        headers=admin_headers,
+        json={"password": "short"},
+    )
+
+    assert response.status_code == 422

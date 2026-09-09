@@ -5,7 +5,7 @@ import pytest
 def character_id(client, auth_headers, character_payload):
     response = client.post("/characters", headers=auth_headers, json=character_payload)
 
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     return response.json()["id"]
 
@@ -26,7 +26,7 @@ def test_add_spell_to_character(client, auth_headers, character_id, test_spells)
         json={"spell_id": spell.id},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert response.json()["name"] == "Magic Missile"
 
     listed = client.get(f"/characters/{character_id}/spells", headers=auth_headers)
@@ -46,7 +46,7 @@ def test_add_same_spell_twice(client, auth_headers, character_id, test_spells):
             headers=auth_headers,
             json=body,
         ).status_code
-        == 200
+        == 201
     )
 
     response = client.post(
@@ -55,7 +55,7 @@ def test_add_same_spell_twice(client, auth_headers, character_id, test_spells):
         json=body,
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert response.json()["detail"] == "Spell already added to character"
 
 
@@ -95,8 +95,8 @@ def test_remove_spell_from_character(client, auth_headers, character_id, test_sp
         headers=auth_headers,
     )
 
-    assert response.status_code == 200
-    assert response.json()["id"] == spell.id
+    assert response.status_code == 204
+    assert response.content == b""
 
     listed = client.get(f"/characters/{character_id}/spells", headers=auth_headers)
 

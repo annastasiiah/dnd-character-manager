@@ -2,6 +2,10 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from schemas.background import CharacterBackgroundResponse
+from schemas.character_class import CharacterClassResponse
+from schemas.race import RaceResponse
+
 
 class CharacterCreate(BaseModel):
     name: str = Field(min_length=1, max_length=50)
@@ -13,7 +17,7 @@ class CharacterCreate(BaseModel):
     strength: int = Field(ge=1, le=30)
     dexterity: int = Field(ge=1, le=30)
     constitution: int = Field(ge=1, le=30)
-    intelligence: int = Field(ge=1, le=30)  
+    intelligence: int = Field(ge=1, le=30)
     wisdom: int = Field(ge=1, le=30)
     charisma: int = Field(ge=1, le=30)
 
@@ -21,10 +25,17 @@ class CharacterCreate(BaseModel):
 class CharacterResponse(BaseModel):
     id: int
     name: str
+    level: int
+
+    # The raw ids stay in the payload so an edit form can round-trip them,
+    # and the expanded objects save the client three lookups per character.
     race_id: int
     class_id: int
     background_id: int
-    level: int
+
+    race: RaceResponse
+    character_class: CharacterClassResponse
+    background: CharacterBackgroundResponse
 
     strength: int
     dexterity: int

@@ -1,7 +1,6 @@
 from database import SessionLocal
 from models import Spell
 
-
 SPELLS = [
     {
         "name": "Fire Bolt",
@@ -192,9 +191,7 @@ def seed_spells():
     try:
         for spell_data in SPELLS:
             existing_spell = (
-                db.query(Spell)
-                .filter(Spell.name == spell_data["name"])
-                .first()
+                db.query(Spell).filter(Spell.name == spell_data["name"]).first()
             )
 
             if existing_spell:

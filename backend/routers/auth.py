@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+from config import ACCESS_TOKEN_EXPIRE_MINUTES
 from database import get_db
 from models.user import User
 from schemas.user import TokenResponse, UserCreate, UserResponse
 from security import create_access_token, hash_password, verify_password
 
-router = APIRouter()
+router = APIRouter(tags=["Auth"])
 
 
 @router.post(
@@ -79,4 +80,5 @@ def login_user(
     return {
         "access_token": access_token,
         "token_type": "bearer",
+        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     }

@@ -1,9 +1,8 @@
 from logging.config import fileConfig
 
-from database import Base, engine
-import models
-
+import models  # noqa: F401  -- registers every model on Base for autogenerate
 from alembic import context
+from database import Base, engine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
