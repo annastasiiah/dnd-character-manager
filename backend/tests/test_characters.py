@@ -5,7 +5,7 @@ def create_character(client, headers, payload, **overrides):
 def test_create_character(client, auth_headers, character_payload):
     response = create_character(client, auth_headers, character_payload)
 
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     data = response.json()
 
@@ -49,7 +49,7 @@ def test_create_character_with_unknown_background(
 
 
 def test_get_characters(client, auth_headers, character_payload):
-    assert create_character(client, auth_headers, character_payload).status_code == 200
+    assert create_character(client, auth_headers, character_payload).status_code == 201
 
     response = client.get("/characters", headers=auth_headers)
 
@@ -66,7 +66,7 @@ def test_get_characters(client, auth_headers, character_payload):
 def test_get_character(client, auth_headers, character_payload):
     create_response = create_character(client, auth_headers, character_payload)
 
-    assert create_response.status_code == 200
+    assert create_response.status_code == 201
 
     character_id = create_response.json()["id"]
 
@@ -95,7 +95,7 @@ def test_user_cannot_get_another_users_character(
 ):
     create_response = create_character(client, auth_headers, character_payload)
 
-    assert create_response.status_code == 200
+    assert create_response.status_code == 201
 
     character_id = create_response.json()["id"]
 
@@ -208,7 +208,7 @@ def test_update_character_with_no_fields(client, auth_headers, character_payload
 def test_update_character_with_invalid_race(client, auth_headers, character_payload):
     create_response = create_character(client, auth_headers, character_payload)
 
-    assert create_response.status_code == 200
+    assert create_response.status_code == 201
 
     character_id = create_response.json()["id"]
 
@@ -293,7 +293,7 @@ def test_user_cannot_update_another_users_character(
 def test_delete_character(client, auth_headers, character_payload):
     create_response = create_character(client, auth_headers, character_payload)
 
-    assert create_response.status_code == 200
+    assert create_response.status_code == 201
 
     character_id = create_response.json()["id"]
 
@@ -369,7 +369,7 @@ def test_create_character_with_ability_score_above_max(
 def test_update_character_validation(client, auth_headers, character_payload):
     create_response = create_character(client, auth_headers, character_payload)
 
-    assert create_response.status_code == 200
+    assert create_response.status_code == 201
 
     character_id = create_response.json()["id"]
 
@@ -380,3 +380,60 @@ def test_update_character_validation(client, auth_headers, character_payload):
     )
 
     assert response.status_code == 422
+
+
+def test_character_response_expands_reference_data(
+    client,
+    auth_headers,
+    character_payload,
+    test_races,
+    test_classes,
+    test_backgrounds,
+):
+    """The client should not need three extra fetches to render a character."""
+    data = create_character(client, auth_headers, character_payload).json()
+
+    assert data["race"]["id"] == test_races[0].id
+    assert data["race"]["name"] == "Human"
+    assert data["race"]["speed"] == 30
+
+    assert data["character_class"]["id"] == test_classes[0].id
+    assert data["character_class"]["name"] == "Wizard"
+
+    assert data["background"]["id"] == test_backgrounds[0].id
+    assert data["background"]["name"] == "Sage"
+
+    # The raw ids stay, so an edit form can round-trip them.
+    assert data["race_id"] == test_races[0].id
+    assert data["class_id"] == test_classes[0].id
+    assert data["background_id"] == test_backgrounds[0].id
+
+
+def test_character_list_expands_reference_data(client, auth_headers, character_payload):
+    create_character(client, auth_headers, character_payload)
+
+    listed = client.get("/characters", headers=auth_headers).json()
+
+    assert listed[0]["race"]["name"] == "Human"
+    assert listed[0]["character_class"]["name"] == "Wizard"
+    assert listed[0]["background"]["name"] == "Sage"
+
+
+def test_updating_a_reference_id_updates_the_expanded_object(
+    client,
+    auth_headers,
+    character_payload,
+    test_races,
+):
+    character_id = create_character(client, auth_headers, character_payload).json()[
+        "id"
+    ]
+
+    response = client.patch(
+        f"/characters/{character_id}",
+        headers=auth_headers,
+        json={"race_id": test_races[1].id},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["race"]["name"] == "Elf"

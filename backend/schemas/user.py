@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 class UserCreate(BaseModel):
@@ -26,9 +26,12 @@ class UserRole(str, Enum):
 
 
 class UserUpdate(BaseModel):
+    """Admin-side edit. An admin may reset a password without knowing it."""
+
     email: EmailStr | None = None
     nickname: str | None = Field(None, min_length=1, max_length=50)
     role: UserRole | None = None
+    password: str | None = Field(None, min_length=8)
 
 
 class UserSelfUpdate(BaseModel):
@@ -37,6 +40,15 @@ class UserSelfUpdate(BaseModel):
 
     email: EmailStr | None = None
     nickname: str | None = Field(None, min_length=1, max_length=50)
+    password: str | None = Field(None, min_length=8)
+    current_password: str | None = None
+
+    @model_validator(mode="after")
+    def current_password_required_to_change_password(self):
+        if self.password is not None and not self.current_password:
+            raise ValueError("current_password is required to change the password")
+
+        return self
 
 
 class UserLogin(BaseModel):
@@ -47,3 +59,4 @@ class UserLogin(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+    expires_in: int

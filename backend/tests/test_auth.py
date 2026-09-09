@@ -1,3 +1,4 @@
+from config import ACCESS_TOKEN_EXPIRE_MINUTES
 from models.user import User
 
 
@@ -73,6 +74,9 @@ def test_login(client, test_user):
     assert "access_token" in data
     assert data["token_type"] == "bearer"
     assert len(data["access_token"]) > 0
+
+    # The client needs to know when to refresh without decoding the JWT.
+    assert data["expires_in"] == ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
 
 def test_login_wrong_password(client, test_user):

@@ -1,18 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from database import get_db
 from dependencies.auth import get_current_user
 from models.user import User
 from schemas.user import UserResponse, UserSelfUpdate
-from sqlalchemy.orm import Session
-from database import get_db
+from security import hash_password, verify_password
 
-router = APIRouter()
+router = APIRouter(prefix="/users", tags=["Users"])
 
-@router.get("/users/me", response_model=UserResponse)
+
+@router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
-
     return current_user
 
-@router.patch("/users/me", response_model=UserResponse)
+
+@router.patch("/me", response_model=UserResponse)
 def edit_me(
     user_update: UserSelfUpdate,
     current_user: User = Depends(get_current_user),
@@ -21,11 +24,24 @@ def edit_me(
     user = current_user
     update_data = user_update.model_dump(exclude_unset=True)
 
-    if not update_data:
+    # `current_password` only authorises the change, it is never stored.
+    current_password = update_data.pop("current_password", None)
+    new_password = update_data.pop("password", None)
+
+    if not update_data and new_password is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No fields to update",
         )
+
+    if new_password is not None:
+        if not verify_password(current_password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Current password is incorrect",
+            )
+
+        user.password_hash = hash_password(new_password)
 
     if "email" in update_data:
         existing_user = (

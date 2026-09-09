@@ -5,20 +5,21 @@ from database import get_db
 from dependencies.auth import get_current_admin
 from models.user import User
 from schemas.user import UserResponse, UserUpdate
+from security import hash_password
 
-router = APIRouter()
+router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
-@router.get("/admin/users", response_model=list[UserResponse])
+@router.get("/users", response_model=list[UserResponse])
 def get_all_users(
     current_admin: User = Depends(get_current_admin), db: Session = Depends(get_db)
 ):
-    users = db.query(User).all()
+    users = db.query(User).order_by(User.id).all()
 
     return users
 
 
-@router.get("/admin/users/{user_id}", response_model=UserResponse)
+@router.get("/users/{user_id}", response_model=UserResponse)
 def get_user(
     user_id: int,
     current_admin: User = Depends(get_current_admin),
@@ -30,23 +31,18 @@ def get_user(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
+
     return user
 
 
-@router.patch("/admin/users/{user_id}", response_model=UserResponse)
+@router.patch("/users/{user_id}", response_model=UserResponse)
 def edit_user(
     user_id: int,
     user_update: UserUpdate,
     current_admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    user = (
-        db.query(User)
-        .where(
-            User.id == user_id,
-        )
-        .first()
-    )
+    user = db.query(User).where(User.id == user_id).first()
 
     if not user:
         raise HTTPException(
@@ -59,6 +55,15 @@ def edit_user(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update"
         )
+
+    # An admin resets a password outright; no current password to confirm.
+    new_password = update_data.pop("password", None)
+
+    if new_password is not None:
+        user.password_hash = hash_password(new_password)
+
+    if "role" in update_data:
+        update_data["role"] = update_data["role"].value
 
     if "email" in update_data:
         existing_user = (
@@ -95,13 +100,12 @@ def edit_user(
     return user
 
 
-@router.delete("/admin/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     user_id: int,
     current_admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-
     user = db.query(User).where(User.id == user_id).first()
 
     if not user:

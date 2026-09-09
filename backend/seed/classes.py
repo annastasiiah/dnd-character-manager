@@ -1,7 +1,6 @@
 from database import SessionLocal
 from models import CharacterClass
 
-
 CLASSES = [
     {"name": "Barbarian"},
     {"name": "Bard"},

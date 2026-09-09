@@ -1,7 +1,6 @@
 from database import SessionLocal
 from models import CharacterBackground
 
-
 BACKGROUNDS = [
     {"name": "Acolyte"},
     {"name": "Charlatan"},
@@ -25,9 +24,7 @@ def seed_backgrounds():
         for background_data in BACKGROUNDS:
             existing_background = (
                 db.query(CharacterBackground)
-                .filter(
-                    CharacterBackground.name == background_data["name"]
-                )
+                .filter(CharacterBackground.name == background_data["name"])
                 .first()
             )
 

@@ -134,3 +134,93 @@ def test_user_cannot_smuggle_role_alongside_a_valid_field(client, auth_headers):
     assert response.json()["role"] == "user"
 
     assert client.get("/admin/users", headers=auth_headers).status_code == 403
+
+
+def test_change_own_password(client, auth_headers, test_user):
+    response = client.patch(
+        "/users/me",
+        headers=auth_headers,
+        json={"password": "brand-new-password", "current_password": "password123"},
+    )
+
+    assert response.status_code == 200
+    assert "password" not in response.json()
+    assert "password_hash" not in response.json()
+
+    # The old password stops working and the new one starts working.
+    assert (
+        client.post(
+            "/users/login",
+            data={"username": test_user.email, "password": "password123"},
+        ).status_code
+        == 401
+    )
+    assert (
+        client.post(
+            "/users/login",
+            data={"username": test_user.email, "password": "brand-new-password"},
+        ).status_code
+        == 200
+    )
+
+
+def test_change_password_with_wrong_current_password(client, auth_headers, test_user):
+    response = client.patch(
+        "/users/me",
+        headers=auth_headers,
+        json={"password": "brand-new-password", "current_password": "not-it"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Current password is incorrect"
+
+    assert (
+        client.post(
+            "/users/login",
+            data={"username": test_user.email, "password": "password123"},
+        ).status_code
+        == 200
+    )
+
+
+def test_change_password_without_current_password(client, auth_headers):
+    response = client.patch(
+        "/users/me",
+        headers=auth_headers,
+        json={"password": "brand-new-password"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_change_password_below_minimum_length(client, auth_headers):
+    response = client.patch(
+        "/users/me",
+        headers=auth_headers,
+        json={"password": "short", "current_password": "password123"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_change_password_alongside_another_field(client, auth_headers, test_user):
+    response = client.patch(
+        "/users/me",
+        headers=auth_headers,
+        json={
+            "nickname": "renamed",
+            "password": "brand-new-password",
+            "current_password": "password123",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["nickname"] == "renamed"
+
+    assert (
+        client.post(
+            "/users/login",
+            data={"username": test_user.email, "password": "brand-new-password"},
+        ).status_code
+        == 200
+    )

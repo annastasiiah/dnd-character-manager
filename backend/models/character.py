@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from models.spell import Spell
     from models.user import User
 
+
 class Character(Base):
     __tablename__ = "characters"
 
@@ -20,7 +21,9 @@ class Character(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     race_id: Mapped[int] = mapped_column(ForeignKey("races.id"), nullable=False)
     class_id: Mapped[int] = mapped_column(ForeignKey("classes.id"), nullable=False)
-    background_id: Mapped[int] = mapped_column(ForeignKey("backgrounds.id"), nullable=False)
+    background_id: Mapped[int] = mapped_column(
+        ForeignKey("backgrounds.id"), nullable=False
+    )
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     level: Mapped[int] = mapped_column(nullable=False)
     strength: Mapped[int] = mapped_column(nullable=False)
@@ -53,4 +56,3 @@ class Character(Base):
         secondary="character_spells",
         back_populates="characters",
     )
-

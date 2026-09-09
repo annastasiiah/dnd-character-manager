@@ -13,7 +13,7 @@ class Race(Base):
     __tablename__ = "races"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     description: Mapped[str] = mapped_column(String(300), nullable=False)
     speed: Mapped[int] = mapped_column(nullable=False)
 
