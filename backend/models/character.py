@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -32,11 +32,16 @@ class Character(Base):
     intelligence: Mapped[int] = mapped_column(nullable=False)
     wisdom: Mapped[int] = mapped_column(nullable=False)
     charisma: Mapped[int] = mapped_column(nullable=False)
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
-    updated_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        server_default=func.now(),
     )
-
+    updated_at: Mapped[datetime] = mapped_column(
+            DateTime(timezone=True),
+            default=lambda: datetime.now(UTC),
+            onupdate=lambda: datetime.now(UTC),
+        )
     user: Mapped["User"] = relationship("User", back_populates="characters")
 
     race: Mapped["Race"] = relationship("Race", back_populates="characters")
