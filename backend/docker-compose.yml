@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: dnd_manager
+      POSTGRES_USER: dnd_user
+      POSTGRES_PASSWORD: dnd_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://dnd_user:dnd_password@db:5432/dnd_manager
+      SECRET_KEY: docker-dev-secret-key
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      CORS_ORIGINS: http://localhost:5173
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

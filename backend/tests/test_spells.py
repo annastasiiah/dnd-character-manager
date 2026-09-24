@@ -1,3 +1,5 @@
+from models import Spell
+
 SPELL_PAYLOAD = {
     "name": "Fireball",
     "level": 3,
@@ -26,6 +28,36 @@ def test_get_spells(client, test_spells):
     assert items[0]["name"] == "Magic Missile"
     assert items[0]["spell_range"] == "120 feet"
 
+def test_get_spell_schools(client, db):
+    schools = [
+        "Abjuration",
+        "Conjuration",
+        "Divination",
+        "Enchantment",
+        "Evocation",
+        "Illusion",
+        "Transmutation",
+    ]
+
+    for index, school in enumerate(schools):
+        db.add(
+            Spell(
+                name=f"Test Spell {index}",
+                level=0,
+                school=school,
+                casting_time="1 action",
+                spell_range="30 feet",
+                duration="Instantaneous",
+                description="Test spell",
+            )
+        )
+
+    db.commit()
+
+    response = client.get("/spells/schools")
+
+    assert response.status_code == 200
+    assert response.json() == schools
 
 def test_get_spells_is_public(client):
     assert client.get("/spells").status_code == 200

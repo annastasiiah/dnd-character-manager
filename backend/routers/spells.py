@@ -47,6 +47,16 @@ def get_spells(
         "offset": offset,
     }
 
+@router.get("/schools")
+def get_spell_schools(db: Session = Depends(get_db)):
+    schools = (
+        db.query(Spell.school)
+        .distinct()
+        .order_by(Spell.school)
+        .all()
+    )
+
+    return [school[0] for school in schools]
 
 @router.get("/{spell_id}", response_model=SpellResponse)
 def get_spell(spell_id: int, db: Session = Depends(get_db)):
