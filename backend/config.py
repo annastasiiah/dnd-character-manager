@@ -1,10 +1,3 @@
-"""Environment configuration.
-
-Every setting the app needs is read (and validated) here, once, at import
-time, so a missing variable fails fast with a clear message instead of
-surfacing as a confusing error deep inside SQLAlchemy or PyJWT.
-"""
-
 import os
 
 from dotenv import load_dotenv
