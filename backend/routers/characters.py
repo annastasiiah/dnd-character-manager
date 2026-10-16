@@ -1,10 +1,16 @@
+import os
+from pathlib import Path
+from fastapi.responses import FileResponse
 from fastapi import APIRouter, Depends, HTTPException, status
+from uuid import uuid4
 from sqlalchemy.orm import Session, selectinload
+from tasks.character_export import export_character_pdf
 
 from database import get_db
 from dependencies.auth import get_current_user
 from models.background import CharacterBackground
 from models.character import Character
+from models.character_export import CharacterExport
 from models.character_class import CharacterClass
 from models.character_spell import CharacterSpell
 from models.race import Race
@@ -40,6 +46,134 @@ def _get_owned_character(character_id: int, user: User, db: Session) -> Characte
 
     return character
 
+@router.post(
+    "/{character_id}/export",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def request_character_export(
+    character_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _get_owned_character(character_id, current_user, db)
+
+    task_id = str(uuid4())
+
+    export = CharacterExport(
+        task_id=task_id,
+        character_id=character_id,
+        user_id=current_user.id,
+        status="PENDING",
+    )
+
+    db.add(export)
+    db.commit()
+
+    try:
+        export_character_pdf.apply_async(
+            kwargs={
+                "character_id": character_id,
+                "user_id": current_user.id,
+            },
+            task_id=task_id,
+        )
+    except Exception:
+        export.status = "FAILURE"
+        export.error = "Failed to enqueue export task"
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not start PDF export",
+        )
+
+    return {
+        "task_id": task_id,
+        "status": "PENDING",
+    }
+
+@router.get("/exports/{task_id}")
+def get_character_export_status(
+    task_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    export = (
+        db.query(CharacterExport)
+        .filter(
+            CharacterExport.task_id == task_id,
+            CharacterExport.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if export is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Export not found",
+        )
+
+    return {
+        "task_id": export.task_id,
+        "character_id": export.character_id,
+        "status": export.status,
+        "created_at": export.created_at,
+        "updated_at": export.updated_at,
+        "error": (
+            "PDF export failed"
+            if export.status == "FAILURE"
+            else None
+        ),
+    }
+
+
+@router.get("/exports/{task_id}/download")
+def download_character_export(
+    task_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    export = (
+        db.query(CharacterExport)
+        .filter(
+            CharacterExport.task_id == task_id,
+            CharacterExport.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if export is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Export not found",
+        )
+
+    if export.status != "SUCCESS" or not export.filename:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Export is not ready for download",
+        )
+
+    exports_dir = Path(os.getenv("EXPORTS_DIR", "exports")).resolve()
+
+    if Path(export.filename).name != export.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid export filename",
+        )
+
+    file_path = (exports_dir / export.filename).resolve()
+
+    if file_path.parent != exports_dir or not file_path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Export file not found",
+        )
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename=export.filename,
+    )
 
 @router.post(
     "",
