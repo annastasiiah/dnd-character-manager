@@ -1,37 +1,112 @@
 
+import { useEffect, useState } from 'react'
+import AuthForm from './AuthForm'
+import {
+  getCharacters,
+  getMe,
+  type Character,
+  type User,
+} from './api/client'
 import './App.css'
 
-const characters = [
-  {
-    id: 1,
-    name: 'Aeloria Moonwhisper',
-    race: 'High Elf',
-    characterClass: 'Wizard',
-    level: 5,
-    initials: 'AM',
-    color: 'lavender',
-  },
-  {
-    id: 2,
-    name: 'Thorin Ironforge',
-    race: 'Mountain Dwarf',
-    characterClass: 'Fighter',
-    level: 3,
-    initials: 'TI',
-    color: 'amber',
-  },
-  {
-    id: 3,
-    name: 'Nyx Shadowmere',
-    race: 'Tiefling',
-    characterClass: 'Rogue',
-    level: 7,
-    initials: 'NS',
-    color: 'rose',
-  },
-]
-
 function App() {
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem('access_token'),
+  )
+  const [user, setUser] = useState<User | null>(null)
+  const [characters, setCharacters] = useState<Character[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!token) {
+      setUser(null)
+      setCharacters([])
+      setLoading(false)
+      return
+    }
+
+    const accessToken = token
+    let cancelled = false
+
+    async function loadData() {
+      setLoading(true)
+      setError('')
+
+      try {
+        const [profile, party] = await Promise.all([
+          getMe(accessToken),
+          getCharacters(accessToken),
+        ])
+
+        if (!cancelled) {
+          setUser(profile)
+          setCharacters(party)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          localStorage.removeItem('access_token')
+          setToken(null)
+          setUser(null)
+          setCharacters([])
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Не вдалося завантажити дані.',
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void loadData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [token])
+
+  function handleAuthenticated(newToken: string) {
+    localStorage.setItem('access_token', newToken)
+    setToken(newToken)
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('access_token')
+    setToken(null)
+    setUser(null)
+    setCharacters([])
+    setError('')
+  }
+
+  if (!token) {
+    return <AuthForm onAuthenticated={handleAuthenticated} />
+  }
+
+  if (loading) {
+    return (
+      <main className="auth-page">
+        <p>Завантаження твого Grimoire…</p>
+      </main>
+    )
+  }
+
+  if (!user) {
+    return (
+      <main className="auth-page">
+        <p role="alert">
+          {error || 'Не вдалося завантажити профіль.'}
+        </p>
+        <button className="primary-button" onClick={handleLogout}>
+          Повернутися до входу
+        </button>
+      </main>
+    )
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -58,12 +133,24 @@ function App() {
         </nav>
 
         <div className="sidebar-bottom">
-          <div className="profile-avatar">A</div>
-          <div className="profile-info">
-            <strong>Adventurer</strong>
-            <small>Campaign explorer</small>
+          <div className="profile-avatar">
+            {user.nickname.slice(0, 1).toUpperCase()}
           </div>
-          <span className="profile-menu">···</span>
+          <div className="profile-info">
+            <strong>{user.nickname}</strong>
+            <small>
+              {user.role === 'admin' ? 'Administrator' : 'Adventurer'}
+            </small>
+          </div>
+          <button
+            className="profile-menu"
+            type="button"
+            onClick={handleLogout}
+            aria-label="Вийти з акаунта"
+            title="Вийти з акаунта"
+          >
+            ↪
+          </button>
         </div>
       </aside>
 
@@ -124,38 +211,57 @@ function App() {
             </div>
 
             <div className="collection-toolbar">
-              <span>{characters.length} characters</span>
+              <span>
+                {characters.length}{' '}
+                {characters.length === 1 ? 'character' : 'characters'}
+              </span>
               <button className="filter-button" type="button">
                 ☷ &nbsp; All characters
               </button>
             </div>
 
-            <div className="character-grid">
-              {characters.map((character) => (
-                <article className="character-card" key={character.id}>
-                  <div className={`character-art ${character.color}`}>
-                    <span className="character-rune">✧</span>
-                    <span className="character-initials">
-                      {character.initials}
-                    </span>
-                    <span className="level-badge">
-                      LVL {character.level}
-                    </span>
-                  </div>
+            {error && (
+              <p className="auth-error" role="alert">
+                {error}
+              </p>
+            )}
 
-                  <div className="character-details">
-                    <div className="character-race">{character.race}</div>
-                    <h3>{character.name}</h3>
-                    <div className="character-class">
-                      <span>✦</span> {character.characterClass}
+            {characters.length === 0 ? (
+              <div className="character-empty">
+                <span>✧</span>
+                <h3>Your story begins here</h3>
+                <p>You haven't created any characters yet.</p>
+              </div>
+            ) : (
+              <div className="character-grid">
+                {characters.map((character) => (
+                  <article className="character-card" key={character.id}>
+                    <div className="character-art lavender">
+                      <span className="character-rune">✧</span>
+                      <span className="character-initials">
+                        {character.name.slice(0, 2).toUpperCase()}
+                      </span>
+                      <span className="level-badge">
+                        LVL {character.level}
+                      </span>
                     </div>
-                    <button className="view-character" type="button">
-                      View character <span>↗</span>
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
+
+                    <div className="character-details">
+                      <div className="character-race">
+                        {character.race.name}
+                      </div>
+                      <h3>{character.name}</h3>
+                      <div className="character-class">
+                        <span>✦</span> {character.character_class.name}
+                      </div>
+                      <button className="view-character" type="button">
+                        View character <span>↗</span>
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
 
           <footer className="page-footer">
@@ -169,3 +275,4 @@ function App() {
 }
 
 export default App
+  

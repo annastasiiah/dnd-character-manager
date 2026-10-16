@@ -24,6 +24,14 @@ export type AuthToken = {
   expires_in: number;
 };
 
+export type User = {
+  id: number;
+  email: string;
+  nickname: string;
+  role: string;
+  created_at: string;
+};
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -59,6 +67,12 @@ export async function login(
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body,
+  });
+}
+
+export function getMe(token: string) {
+  return request<User>("/users/me", {
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
