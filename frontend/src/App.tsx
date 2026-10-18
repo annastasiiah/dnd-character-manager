@@ -1,5 +1,5 @@
-
 import { useEffect, useState } from 'react'
+import CreateCharacterForm from './CreateCharacterForm.tsx'
 import AuthForm from './AuthForm'
 import {
   getCharacters,
@@ -17,6 +17,8 @@ function App() {
   const [characters, setCharacters] = useState<Character[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
 
   useEffect(() => {
     if (!token) {
@@ -81,6 +83,23 @@ function App() {
     setCharacters([])
     setError('')
   }
+
+  async function handleCharacterCreated() {
+  if (!token) return
+
+  try {
+    const updatedCharacters = await getCharacters(token)
+    setCharacters(updatedCharacters)
+    setShowCreateForm(false)
+    setError('')
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Персонажа створено, але не вдалося оновити список.',
+    )
+  }
+}
 
   if (!token) {
     return <AuthForm onAuthenticated={handleAuthenticated} />
@@ -180,7 +199,11 @@ function App() {
                 Your heroes, their stories, and the worlds they will change.
                 Keep every detail of your next great adventure in one place.
               </p>
-              <button className="primary-button" type="button">
+              <button
+                className="primary-button"
+                type="button"
+                onClick={() => setShowCreateForm(true)}
+              >
                 <span>＋</span> Create character
               </button>
             </div>
@@ -205,7 +228,11 @@ function App() {
                 <h2>Character collection</h2>
                 <p>Your heroes are waiting for their next chapter.</p>
               </div>
-              <button className="secondary-button" type="button">
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => setShowCreateForm(true)}
+              >
                 ＋ New character
               </button>
             </div>
@@ -254,7 +281,11 @@ function App() {
                       <div className="character-class">
                         <span>✦</span> {character.character_class.name}
                       </div>
-                      <button className="view-character" type="button">
+                      <button
+                        className="view-character"
+                        type="button"
+                        onClick={() => setSelectedCharacter(character)}
+                      >
                         View character <span>↗</span>
                       </button>
                     </div>
@@ -270,6 +301,68 @@ function App() {
           </footer>
         </section>
       </main>
+      {showCreateForm && (
+  <CreateCharacterForm
+    token={token}
+    onCreated={handleCharacterCreated}
+    onCancel={() => setShowCreateForm(false)}
+  />
+)}
+  {selectedCharacter && (
+  <div
+    className="character-modal-backdrop"
+    onClick={() => setSelectedCharacter(null)}
+  >
+    <section
+      className="character-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="character-modal-title"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <button
+        className="character-modal-close"
+        type="button"
+        onClick={() => setSelectedCharacter(null)}
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+      <div className="eyebrow">CHARACTER SHEET</div>
+      <h2 id="character-modal-title">{selectedCharacter.name}</h2>
+
+      <p>
+        {selectedCharacter.race.name} ·{' '}
+        {selectedCharacter.character_class.name}
+      </p>
+      <p>Background: {selectedCharacter.background.name}</p>
+      <p>Level: {selectedCharacter.level}</p>
+
+      <div className="character-stats">
+        {(
+          [
+            ['Strength', selectedCharacter.strength],
+            ['Dexterity', selectedCharacter.dexterity],
+            ['Constitution', selectedCharacter.constitution],
+            ['Intelligence', selectedCharacter.intelligence],
+            ['Wisdom', selectedCharacter.wisdom],
+            ['Charisma', selectedCharacter.charisma],
+          ] as const
+        ).map(([label, value]) => (
+          <div className="character-stat" key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+            <small>
+              Modifier: {Math.floor((value - 10) / 2) >= 0 ? '+' : ''}
+              {Math.floor((value - 10) / 2)}
+            </small>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+)}
     </div>
   )
 }

@@ -105,3 +105,28 @@ export function getClasses() {
 export function getBackgrounds() {
   return request<{ id: number; name: string }[]>("/backgrounds");
 }
+
+export type CharacterCreate = {
+  name: string
+  race_id: number
+  class_id: number
+  background_id: number
+  level: number
+  strength: number
+  dexterity: number
+  constitution: number
+  intelligence: number
+  wisdom: number
+  charisma: number
+}
+
+export function createCharacter(token: string, data: CharacterCreate) {
+  return request<Character>('/characters', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+}
