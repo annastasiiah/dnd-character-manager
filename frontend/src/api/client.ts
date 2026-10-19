@@ -159,4 +159,55 @@ export function deleteCharacter(
     },
   })
 }
+
+export type Spell = {
+  id: number
+  name: string
+  level: number
+  school: string
+  casting_time: string
+  spell_range: string
+  duration: string
+  description: string
+}
+
+export type SpellListResponse = {
+  items: Spell[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export type SpellFilters = {
+  search?: string
+  level?: number
+  school?: string
+  limit?: number
+  offset?: number
+}
+
+export function getSpells(filters: SpellFilters = {}) {
+  const params = new URLSearchParams()
+
+  if (filters.search?.trim()) {
+    params.set('search', filters.search.trim())
+  }
+
+  if (filters.level !== undefined) {
+    params.set('level', String(filters.level))
+  }
+
+  if (filters.school) {
+    params.set('school', filters.school)
+  }
+
+  params.set('limit', String(filters.limit ?? 50))
+  params.set('offset', String(filters.offset ?? 0))
+
+  return request<SpellListResponse>(`/spells?${params.toString()}`)
+}
+
+export function getSpellSchools() {
+  return request<string[]>('/spells/schools')
+}
   
