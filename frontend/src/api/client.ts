@@ -130,3 +130,33 @@ export function createCharacter(token: string, data: CharacterCreate) {
     body: JSON.stringify(data),
   })
 }
+
+export type CharacterUpdate = Partial<CharacterCreate>
+
+export function updateCharacter(
+  token: string,
+  characterId: number,
+  data: CharacterUpdate,
+) {
+  return request<Character>(`/characters/${characterId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteCharacter(
+  token: string,
+  characterId: number,
+) {
+  return request<void>(`/characters/${characterId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
+  

@@ -2,9 +2,11 @@
 import { useEffect, useState } from 'react'
 import {
   createCharacter,
+  updateCharacter,
   getRaces,
   getClasses,
   getBackgrounds,
+  type Character,
   type CharacterCreate,
 } from './api/client'
 import './CreateCharacterForm.css'
@@ -18,6 +20,7 @@ type Props = {
   token: string
   onCreated: () => void
   onCancel: () => void
+  character?: Character
 }
 
 const abilities = [
@@ -29,20 +32,31 @@ const abilities = [
   { name: 'charisma', label: 'Charisma' },
 ] as const
 
-function CreateCharacterForm({ token, onCreated, onCancel }: Props) {
-  const [name, setName] = useState('')
-  const [raceId, setRaceId] = useState('')
-  const [classId, setClassId] = useState('')
-  const [backgroundId, setBackgroundId] = useState('')
-  const [level, setLevel] = useState(1)
+function CreateCharacterForm({
+  token,
+  onCreated,
+  onCancel,
+  character,
+}: Props) {
+  const [name, setName] = useState(character?.name ?? '')
+  const [raceId, setRaceId] = useState(
+    character ? String(character.race_id) : '',
+  )
+  const [classId, setClassId] = useState(
+    character ? String(character.class_id) : '',
+  )
+  const [backgroundId, setBackgroundId] = useState(
+    character ? String(character.background_id) : '',
+  )
+  const [level, setLevel] = useState(character?.level ?? 1)
 
   const [stats, setStats] = useState({
-    strength: 10,
-    dexterity: 10,
-    constitution: 10,
-    intelligence: 10,
-    wisdom: 10,
-    charisma: 10,
+    strength: character?.strength ?? 10,
+    dexterity: character?.dexterity ?? 10,
+    constitution: character?.constitution ?? 10,
+    intelligence: character?.intelligence ?? 10,
+    wisdom: character?.wisdom ?? 10,
+    charisma: character?.charisma ?? 10,
   })
 
   const [races, setRaces] = useState<Option[]>([])
@@ -110,7 +124,12 @@ function CreateCharacterForm({ token, onCreated, onCancel }: Props) {
     setSaving(true)
 
     try {
-      await createCharacter(token, data)
+      if (character) {
+        await updateCharacter(token, character.id, data)
+      } else {
+        await createCharacter(token, data)
+      }
+
       onCreated()
     } catch (err) {
       setError(
@@ -134,7 +153,9 @@ function CreateCharacterForm({ token, onCreated, onCancel }: Props) {
         <header className="character-modal-header">
           <div>
             <div className="eyebrow">BEGIN A NEW ADVENTURE</div>
-            <h2 id="create-character-title">Create character</h2>
+            <h2 id="create-character-title">
+              {character ? 'Edit character' : 'Create character'}
+            </h2>
           </div>
           <button
             className="modal-close"
@@ -270,7 +291,11 @@ function CreateCharacterForm({ token, onCreated, onCancel }: Props) {
                 type="submit"
                 disabled={saving || loadingOptions}
               >
-                {saving ? 'Creating…' : '✦ Create character'}
+                {saving
+                  ? 'Saving…'
+                  : character
+                    ? '✦ Save changes'
+                    : '✦ Create character'}
               </button>
             </footer>
           </form>

@@ -742,3 +742,46 @@
     padding: 24px 18px;
   }
 }
+
+.character-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.character-actions .view-character {
+  flex: 1;
+  margin-top: 0;
+}
+
+.delete-character {
+  padding: 8px 12px;
+  border: 1px solid rgba(239, 130, 150, 0.35);
+  border-radius: 8px;
+  background: transparent;
+  color: #eaa0b0;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.delete-character:hover {
+  background: rgba(239, 130, 150, 0.12);
+  color: #ffc1ce;
+}
+
+.edit-character {
+  padding: 8px 12px;
+  border: 1px solid rgba(190, 165, 255, 0.35);
+  border-radius: 8px;
+  background: rgba(190, 165, 255, 0.08);
+  color: #d8c6ff;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.edit-character:hover {
+  background: rgba(190, 165, 255, 0.18);
+}

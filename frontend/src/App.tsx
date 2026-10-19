@@ -4,6 +4,8 @@ import AuthForm from './AuthForm'
 import {
   getCharacters,
   getMe,
+  updateCharacter,
+  deleteCharacter,
   type Character,
   type User,
 } from './api/client'
@@ -19,6 +21,7 @@ function App() {
   const [error, setError] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
+  const [editingCharacter, setEditingCharacter] = useState<Character | null>(null)
 
   useEffect(() => {
     if (!token) {
@@ -97,6 +100,34 @@ function App() {
       err instanceof Error
         ? err.message
         : 'Персонажа створено, але не вдалося оновити список.',
+    )
+  }
+}
+
+async function handleCharacterDeleted(characterId: number) {
+  if (!token) return
+
+  const confirmed = window.confirm(
+    'Ви впевнені, що хочете видалити цього персонажа? Цю дію не можна скасувати.',
+  )
+
+  if (!confirmed) return
+
+  try {
+    await deleteCharacter(token, characterId)
+
+    setCharacters((current) =>
+      current.filter((character) => character.id !== characterId),
+    )
+
+    setSelectedCharacter(null)
+    setEditingCharacter(null)
+    setError('')
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Не вдалося видалити персонажа.',
     )
   }
 }
@@ -281,13 +312,34 @@ function App() {
                       <div className="character-class">
                         <span>✦</span> {character.character_class.name}
                       </div>
-                      <button
-                        className="view-character"
-                        type="button"
-                        onClick={() => setSelectedCharacter(character)}
-                      >
-                        View character <span>↗</span>
-                      </button>
+                      <div className="character-actions">
+                        <button
+                          className="view-character"
+                          type="button"
+                          onClick={() => setSelectedCharacter(character)}
+                        >
+                          View character <span>↗</span>
+                        </button>
+
+                        <button
+                          className="edit-character"
+                          type="button"
+                          onClick={() => {
+                            setSelectedCharacter(null)
+                            setEditingCharacter(character)
+                          }}
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          className="delete-character"
+                          type="button"
+                          onClick={() => void handleCharacterDeleted(character.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </article>
                 ))}
@@ -301,13 +353,35 @@ function App() {
           </footer>
         </section>
       </main>
-      {showCreateForm && (
-  <CreateCharacterForm
-    token={token}
-    onCreated={handleCharacterCreated}
-    onCancel={() => setShowCreateForm(false)}
-  />
-)}
+      {(showCreateForm || editingCharacter) && (
+        <CreateCharacterForm
+          key={editingCharacter?.id ?? 'new-character'}
+          token={token}
+          character={editingCharacter ?? undefined}
+          onCreated={async () => {
+            if (!token) return
+
+            try {
+              const updatedCharacters = await getCharacters(token)
+              setCharacters(updatedCharacters)
+              setShowCreateForm(false)
+              setEditingCharacter(null)
+              setSelectedCharacter(null)
+              setError('')
+            } catch (err) {
+              setError(
+                err instanceof Error
+                  ? err.message
+                  : 'Не вдалося оновити список персонажів.',
+              )
+            }
+          }}
+          onCancel={() => {
+            setShowCreateForm(false)
+            setEditingCharacter(null)
+          }}
+        />
+      )}
   {selectedCharacter && (
   <div
     className="character-modal-backdrop"
