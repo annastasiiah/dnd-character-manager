@@ -371,3 +371,54 @@
     grid-template-columns: 1fr;
   }
 }
+
+.spellbook-pagination {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 16px;
+flex-wrap: wrap;
+margin-top: 24px;
+padding-top: 18px;
+border-top: 1px solid #40314f;
+}
+
+.spellbook-pagination-note {
+margin: 0;
+color: #a99dbd;
+font-size: 13px;
+}
+
+.spellbook-pagination-controls {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.spellbook-page-button {
+padding: 9px 14px;
+border: 1px solid #57416e;
+border-radius: 9px;
+background: #241b32;
+color: #e9dcfa;
+font: inherit;
+font-size: 13px;
+cursor: pointer;
+transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.spellbook-page-button:hover() {
+border-color: #a982e9;
+background: #342447;
+}
+
+.spellbook-page-button {
+opacity: 0.4;
+cursor: not-allowed;
+}
+
+.spellbook-page-number {
+color: #c8bed3;
+font-size: 13px;
+white-space: nowrap;
+}

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import { getSpellSchools, getSpells } from './api/client'
 import type { Spell } from './api/client'
@@ -29,6 +30,8 @@ export default function Spellbook() {
   const [school, setSchool] = useState('')
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null)
   const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(0)
+  const pageSize = 50
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -50,8 +53,8 @@ export default function Spellbook() {
           search,
           level: level === '' ? undefined : Number(level),
           school: school || undefined,
-          limit: 50,
-          offset: 0,
+          limit: pageSize,
+          offset: page * pageSize,
         })
 
         if (!cancelled) {
@@ -73,12 +76,12 @@ export default function Spellbook() {
       }
     }
 
-    loadSpells()
+    void loadSpells()
 
     return () => {
       cancelled = true
     }
-  }, [search, level, school])
+  }, [search, level, school, page])
 
   return (
     <section className="spellbook">
@@ -105,14 +108,20 @@ export default function Spellbook() {
             type="search"
             placeholder="Search spells..."
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(0)
+            }}
           />
         </label>
 
         <select
           aria-label="Filter by level"
           value={level}
-          onChange={(event) => setLevel(event.target.value)}
+          onChange={(event) => {
+            setLevel(event.target.value)
+            setPage(0)
+          }}
         >
           {spellLevels.map((item) => (
             <option key={item.value} value={item.value}>
@@ -124,7 +133,10 @@ export default function Spellbook() {
         <select
           aria-label="Filter by school"
           value={school}
-          onChange={(event) => setSchool(event.target.value)}
+          onChange={(event) => {
+            setSchool(event.target.value)
+            setPage(0)
+          }}
         >
           <option value="">All schools</option>
           {schools.map((item) => (
@@ -138,7 +150,9 @@ export default function Spellbook() {
       {error && <p className="spellbook-error">{error}</p>}
 
       {loading ? (
-        <div className="spellbook-message">Consulting the ancient tomes...</div>
+        <div className="spellbook-message">
+          Consulting the ancient tomes...
+        </div>
       ) : spells.length === 0 ? (
         <div className="spellbook-empty">
           <span>✧</span>
@@ -165,18 +179,42 @@ export default function Spellbook() {
                 <h2>{spell.name}</h2>
                 <p className="spell-school">{spell.school}</p>
                 <p className="spell-description">{spell.description}</p>
-
-                <span className="spell-card-link">View spell details ↗</span>
+                <span className="spell-card-link">
+                  View spell details ↗
+                </span>
               </button>
             ))}
           </div>
 
-          {total > spells.length && (
+          <div className="spellbook-pagination">
             <p className="spellbook-pagination-note">
-              Showing {spells.length} of {total} spells.
-              Refine your search to find more specific spells.
+              {`Showing ${page * pageSize + 1}–${page * pageSize + spells.length} of ${total} spells`}
             </p>
-          )}
+
+            <div className="spellbook-pagination-controls">
+              <button
+                type="button"
+                className="spellbook-page-button"
+                disabled={page === 0 || loading}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                ← Previous
+              </button>
+
+              <span className="spellbook-page-number">
+                Page {page + 1} of {Math.max(1, Math.ceil(total / pageSize))}
+              </span>
+
+              <button
+                type="button"
+                className="spellbook-page-button"
+                disabled={(page + 1) * pageSize >= total || loading}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Next →
+              </button>
+            </div>
+          </div>
         </>
       )}
 
