@@ -118,11 +118,11 @@ cp backend/.env.example backend/.env
 Open `backend/.env` and set the following values:
 
 ```env
-DATABASE_URL=postgresql+psycopg://dnd_user:changeme@localhost:5432/dnd_manager
+DATABASE_URL=postgresql+psycopg://dnd_user:changeme@localhost:5433/dnd_manager
 SECRET_KEY=replace-me-with-a-random-secret
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 CORS_ORIGINS=http://localhost:5173
-TEST_DATABASE_URL=postgresql+psycopg://dnd_user:changeme@localhost:5432/dnd_manager_test
+TEST_DATABASE_URL=postgresql+psycopg://dnd_user:changeme@localhost:5433/dnd_manager_test
 
 POSTGRES_PASSWORD=change_me_to_a_long_random_password
 ```
@@ -162,6 +162,8 @@ On the first run, create the database schema by applying the migrations:
 ```bash
 docker compose -f backend/docker-compose.yml exec api uv run alembic upgrade head
 ```
+
+Alembic applies migrations to the application database configured by `DATABASE_URL`. `TEST_DATABASE_URL` is reserved for automated tests.
 
 ### 5. Load the reference data
 
@@ -266,7 +268,7 @@ cd backend
 uv sync --frozen --all-groups
 
 uv run ruff check .
-uv run alembic upgrade head
+DATABASE_URL="$TEST_DATABASE_URL" uv run alembic upgrade head
 uv run pytest -q
 ```
 

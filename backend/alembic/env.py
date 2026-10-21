@@ -1,7 +1,4 @@
-import os
 from logging.config import fileConfig
-
-from sqlalchemy import create_engine
 
 import models  # noqa: F401
 from alembic import context
@@ -53,26 +50,15 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in online mode."""
-    test_database_url = os.getenv("TEST_DATABASE_URL")
+    """Run migrations using the configured application database."""
+    with engine.connect() as connection:
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+        )
 
-    if test_database_url:
-        connectable = create_engine(test_database_url)
-    else:
-        connectable = engine
-
-    try:
-        with connectable.connect() as connection:
-            context.configure(
-                connection=connection,
-                target_metadata=target_metadata,
-            )
-
-            with context.begin_transaction():
-                context.run_migrations()
-    finally:
-        if test_database_url:
-            connectable.dispose()
+        with context.begin_transaction():
+            context.run_migrations()
 
 if context.is_offline_mode():
     run_migrations_offline()
