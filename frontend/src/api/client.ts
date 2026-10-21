@@ -297,4 +297,48 @@ export function getSpells(filters: SpellFilters = {}) {
 export function getSpellSchools() {
   return request<string[]>('/spells/schools')
 }
-  
+
+export function getCharacterSpells(token: string, characterId: number) {
+  return request<Spell[]>(
+    `/characters/${characterId}/spells`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+}
+
+export function addCharacterSpell(
+  token: string,
+  characterId: number,
+  spellId: number,
+) {
+  return request<Spell>(
+    `/characters/${characterId}/spells`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ spell_id: spellId }),
+    },
+  )
+}
+
+export function removeCharacterSpell(
+  token: string,
+  characterId: number,
+  spellId: number,
+) {
+  return request<void>(
+    `/characters/${characterId}/spells/${spellId}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+}

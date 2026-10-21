@@ -1,0 +1,165 @@
+
+.character-spells {
+  display: grid;
+  gap: 28px;
+  margin-top: 24px;
+}
+
+.spells-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.spells-section-heading h3 {
+  margin: 0 0 5px;
+  font-size: 1.1rem;
+}
+
+.spells-section-heading p,
+.character-spell-info span,
+.character-spell-info small {
+  color: #c4b9d9;
+}
+
+.spells-section-heading p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.character-spell-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.character-spell-filters input,
+.character-spell-filters select {
+  min-width: 0;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(190, 165, 255, 0.25);
+  border-radius: 10px;
+  background: #191624;
+  color: #f5f0ff;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.character-spell-filters input:focus,
+.character-spell-filters select:focus {
+  outline: 2px solid rgba(190, 165, 255, 0.6);
+  outline-offset: 2px;
+}
+
+.character-spell-list,
+.available-spell-list {
+  display: grid;
+  gap: 10px;
+}
+
+.character-spell-card,
+.available-spell-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(190, 165, 255, 0.18);
+  border-radius: 12px;
+  background: rgba(190, 165, 255, 0.045);
+}
+
+.character-spell-info {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.character-spell-info strong {
+  color: #f5f0ff;
+  overflow-wrap: anywhere;
+}
+
+.character-spell-info span,
+.character-spell-info small {
+  font-size: 0.82rem;
+}
+
+.character-spell-info p {
+  margin: 5px 0 0;
+  color: #e0d8ed;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.spell-add-button,
+.spell-remove-button {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border: 1px solid rgba(190, 165, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(190, 165, 255, 0.1);
+  color: #e3d5ff;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.spell-add-button:hover:not(:disabled),
+.spell-remove-button:hover:not(:disabled) {
+  background: rgba(190, 165, 255, 0.2);
+}
+
+.spell-remove-button {
+  border-color: rgba(239, 130, 150, 0.3);
+  background: rgba(239, 130, 150, 0.07);
+  color: #ffb6c3;
+}
+
+.spell-add-button:disabled,
+.spell-remove-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.spells-message,
+.spells-empty {
+  padding: 16px;
+  border: 1px dashed rgba(190, 165, 255, 0.25);
+  border-radius: 12px;
+  color: #c4b9d9;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.character-spells-error {
+  padding: 12px;
+  border: 1px solid rgba(255, 130, 150, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 130, 150, 0.07);
+  color: #ffb6c3;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .character-spell-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .character-spell-card,
+  .available-spell-card {
+    flex-direction: column;
+  }
+
+  .spell-add-button,
+  .spell-remove-button {
+    align-self: flex-start;
+  }
+}

@@ -852,3 +852,35 @@
     transform: rotate(360deg);
   }
 }
+.character-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 18px 0 22px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(190, 165, 255, 0.2);
+}
+
+.character-tab {
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #c4b9d9;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.character-tab:hover {
+  background: rgba(190, 165, 255, 0.08);
+}
+
+.character-tab.active {
+  border-color: rgba(190, 165, 255, 0.3);
+  background: rgba(190, 165, 255, 0.14);
+  color: #e3d5ff;
+}
+
+.character-overview > p {
+  line-height: 1.5;
+}
