@@ -30,6 +30,7 @@ export default function Compendium() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -77,6 +78,15 @@ export default function Compendium() {
     entry.name.toLowerCase().includes(search.trim().toLowerCase()),
   )
 
+  function changeCategory(newCategory: Category) {
+    setCategory(newCategory)
+    setSelectedEntry(null)
+  }
+
+  function closeModal() {
+    setSelectedEntry(null)
+  }
+
   return (
     <div className="compendium">
       <header className="compendium-header">
@@ -95,12 +105,13 @@ export default function Compendium() {
             className={`compendium-tab ${
               category === item.id ? 'active' : ''
             }`}
-            onClick={() => setCategory(item.id)}
+            onClick={() => changeCategory(item.id)}
           >
             {item.label}
           </button>
         ))}
       </nav>
+
       <div className="compendium-search">
         <span aria-hidden="true">⌕</span>
         <input
@@ -111,7 +122,11 @@ export default function Compendium() {
           aria-label="Search compendium"
         />
         {search && (
-          <button type="button" onClick={() => setSearch('')} aria-label="Clear search">
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            aria-label="Clear search"
+          >
             ×
           </button>
         )}
@@ -127,12 +142,12 @@ export default function Compendium() {
           </button>
         </div>
       ) : filteredEntries.length === 0 ? (
-          <p className="compendium-message">
-            {search
-              ? 'No entries match your search.'
-              : 'No entries found in this section yet.'}
-          </p>
-        ) : (
+        <p className="compendium-message">
+          {search
+            ? 'No entries match your search.'
+            : 'No entries found in this section yet.'}
+        </p>
+      ) : (
         <>
           <div className="compendium-section-heading">
             <h2>{categories.find((item) => item.id === category)?.label}</h2>
@@ -141,7 +156,20 @@ export default function Compendium() {
 
           <div className="compendium-grid">
             {filteredEntries.map((entry) => (
-              <article className="compendium-card" key={entry.id}>
+              <article
+                className="compendium-card"
+                key={`${category}-${entry.id}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedEntry(entry)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    setSelectedEntry(entry)
+                  }
+                }}
+                aria-label={`View details for ${entry.name}`}
+              >
                 <div className="compendium-card-mark">✦</div>
                 <h3>{entry.name}</h3>
 
@@ -165,10 +193,72 @@ export default function Compendium() {
                       : 'A story that shaped your character.'}
                   </p>
                 )}
+
+                <span className="compendium-card-action">
+                  View details <span aria-hidden="true">↗</span>
+                </span>
               </article>
             ))}
           </div>
         </>
+      )}
+
+      {selectedEntry && (
+        <div className="compendium-modal-overlay">
+          <button
+            type="button"
+            className="compendium-modal-backdrop"
+            onClick={closeModal}
+            aria-label="Close details"
+            tabIndex={-1}
+          />
+
+          <section
+            className="compendium-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="compendium-modal-title"
+          >
+            <button
+              type="button"
+              className="compendium-modal-close"
+              onClick={closeModal}
+              aria-label="Close details"
+              autoFocus
+            >
+              ×
+            </button>
+
+            <div className="compendium-card-mark">✦</div>
+
+            <p className="compendium-eyebrow">
+              {categories.find((item) => item.id === category)?.label}
+            </p>
+
+            <h2 id="compendium-modal-title">{selectedEntry.name}</h2>
+
+            {category === 'races' ? (
+              <>
+                {selectedEntry.description && (
+                  <p className="compendium-modal-description">
+                    {selectedEntry.description}
+                  </p>
+                )}
+
+                {selectedEntry.speed != null && (
+                  <div className="compendium-stat">
+                    <span>Speed</span>
+                    <strong>{selectedEntry.speed} ft.</strong>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="compendium-modal-description">
+                Additional details for this entry are not available yet.
+              </p>
+            )}
+          </section>
+        </div>
       )}
     </div>
   )
