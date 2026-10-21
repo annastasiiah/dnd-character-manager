@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Spellbook from './Spellbook'
 import CreateCharacterForm from './CreateCharacterForm.tsx'
+import Compendium from './Compendium'
 import AuthForm from './AuthForm'
 import {
   getCharacters,
@@ -21,7 +22,9 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [activePage, setActivePage] = useState<'characters' | 'spellbook'>('characters')
+  const [activePage, setActivePage] = useState<
+      'characters' | 'spellbook' | 'compendium'
+    >('characters')
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null)
 
@@ -197,9 +200,16 @@ return (
           <span>✧</span> Spellbook
         </button>
 
-        <a className="nav-link" href="#">
+        <button
+          type="button"
+          className={`nav-link ${activePage === 'compendium' ? 'active' : ''}`}
+          onClick={() => {
+            console.log('Compendium clicked')
+            setActivePage('compendium')
+          }}
+        >
           <span>▤</span> Compendium
-        </a>
+        </button>
       </nav>
 
       <div className="sidebar-bottom">
@@ -230,7 +240,11 @@ return (
       <header className="topbar">
         <div className="breadcrumb">
           Workspace <span>/</span>{' '}
-          {activePage === 'characters' ? 'My characters' : 'Spellbook'}
+          {activePage === 'characters'
+            ? 'My characters'
+            : activePage === 'spellbook'
+              ? 'Spellbook'
+              : 'Compendium'}
         </div>
 
         <div className="topbar-right">
@@ -391,6 +405,8 @@ return (
         )}
 
         {activePage === 'spellbook' && <Spellbook />}
+        {activePage === 'compendium' && <Compendium />}
+
       </section>
     </main>
 

@@ -1,0 +1,203 @@
+
+.compendium {
+  width: 100%;
+  color: #f1edf9;
+}
+
+.compendium-header {
+  margin-bottom: 28px;
+}
+
+.compendium-eyebrow {
+  margin: 0 0 10px;
+  color: #b9a1e8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.compendium-header h1 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 700;
+}
+
+.compendium-subtitle {
+  margin: 10px 0 0;
+  color: #a9a0ba;
+  line-height: 1.6;
+}
+
+.compendium-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 30px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(190, 166, 230, 0.16);
+}
+
+.compendium-tab {
+  padding: 10px 18px;
+  border: 1px solid rgba(190, 166, 230, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #bcb3ce;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.compendium-tab:hover {
+  border-color: #9b7bd0;
+  color: #fff;
+}
+
+.compendium-tab.active {
+  border-color: #a78bdf;
+  background: rgba(167, 139, 223, 0.16);
+  color: #e3d5ff;
+}
+
+.compendium-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.compendium-section-heading h2 {
+  margin: 0;
+  font-size: 21px;
+}
+
+.compendium-section-heading span {
+  color: #a9a0ba;
+  font-size: 13px;
+}
+
+.compendium-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.compendium-card {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid rgba(190, 166, 230, 0.16);
+  border-radius: 15px;
+  background: linear-gradient(
+    145deg,
+    rgba(83, 62, 116, 0.2),
+    rgba(30, 24, 43, 0.45)
+  );
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.compendium-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(183, 151, 235, 0.5);
+}
+
+.compendium-card-mark {
+  margin-bottom: 15px;
+  color: #b99be9;
+  font-size: 22px;
+}
+
+.compendium-card h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.compendium-description {
+  margin: 12px 0 0;
+  color: #aaa1bb;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.compendium-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(190, 166, 230, 0.14);
+  font-size: 13px;
+}
+
+.compendium-stat span {
+  color: #aaa1bb;
+}
+
+.compendium-stat strong {
+  color: #d9c7ff;
+}
+
+.compendium-message {
+  padding: 32px 16px;
+  color: #bcb3ce;
+  text-align: center;
+}
+
+.compendium-error button {
+  margin-top: 10px;
+  padding: 9px 15px;
+  border: 1px solid rgba(190, 166, 230, 0.3);
+  border-radius: 8px;
+  background: rgba(167, 139, 223, 0.12);
+  color: #eee5ff;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .compendium-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .compendium-card {
+    padding: 18px;
+  }
+}
+
+.compendium-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+  padding: 0 14px;
+  border: 1px solid rgba(190, 166, 230, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #b99be9;
+}
+
+.compendium-search > span {
+  font-size: 22px;
+}
+
+.compendium-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 13px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #f1edf9;
+  font: inherit;
+}
+
+.compendium-search input::placeholder {
+  color: #827991;
+}
+
+.compendium-search button {
+  border: none;
+  background: transparent;
+  color: #bcb3ce;
+  font-size: 22px;
+  cursor: pointer;
+}

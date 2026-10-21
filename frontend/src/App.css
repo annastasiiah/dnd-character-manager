@@ -785,3 +785,22 @@
 .edit-character:hover {
   background: rgba(190, 165, 255, 0.18);
 }
+
+.navigation .nav-link {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #c4b9d9;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.navigation .nav-link.active {
+  background: rgba(190, 165, 255, 0.12);
+  color: #e3d5ff;
+}
