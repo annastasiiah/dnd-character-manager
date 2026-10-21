@@ -3,13 +3,18 @@ import Spellbook from './Spellbook'
 import CreateCharacterForm from './CreateCharacterForm.tsx'
 import Compendium from './Compendium'
 import AuthForm from './AuthForm'
+
 import {
   getCharacters,
   getMe,
   deleteCharacter,
+  requestCharacterExport,
+  getCharacterExportStatus,
+  downloadCharacterExport,
   type Character,
   type User,
 } from './api/client'
+
 import './App.css'
 
 function App() {
@@ -26,6 +31,10 @@ function App() {
     >('characters')
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null)
+  
+  const [exportingCharacterId, setExportingCharacterId] = useState<number | null>(null)
+  const [exportError, setExportError] = useState('')
+
 
   useEffect(() => {
     if (!token) {
@@ -119,6 +128,69 @@ async function handleCharacterDeleted(characterId: number) {
     )
   }
 }
+
+
+async function handleCharacterExport(
+  characterId: number,
+  characterName: string,
+) {
+  if (!token || exportingCharacterId !== null) return
+
+  setExportingCharacterId(characterId)
+  setExportError('')
+
+  try {
+    const task = await requestCharacterExport(token, characterId)
+
+    let completed = false
+
+    for (let attempt = 0; attempt < 60; attempt++) {
+      const result = await getCharacterExportStatus(token, task.task_id)
+
+      if (result.status === 'SUCCESS') {
+        const pdf = await downloadCharacterExport(token, task.task_id)
+        const url = URL.createObjectURL(pdf)
+        const link = document.createElement('a')
+
+        const safeName = characterName
+          .trim()
+          .replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
+          .replace(/[. ]+$/g, '')
+
+        link.href = url
+        link.download = `${safeName || 'character'}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        URL.revokeObjectURL(url)
+
+        completed = true
+        break
+      }
+
+      if (result.status === 'FAILURE') {
+        throw new Error(result.error || 'Не вдалося створити PDF.')
+      }
+
+      await new Promise((resolve) => window.setTimeout(resolve, 2000))
+    }
+
+    if (!completed) {
+      throw new Error(
+        'Генерація PDF триває довше, ніж очікувалося. Спробуй ще раз пізніше.',
+      )
+    }
+  } catch (err) {
+    setExportError(
+      err instanceof Error
+        ? err.message
+        : 'Не вдалося завантажити PDF.',
+    )
+  } finally {
+    setExportingCharacterId(null)
+  }
+}
+
 
   if (!token) {
     return <AuthForm onAuthenticated={handleAuthenticated} />
@@ -455,6 +527,39 @@ return (
 
           <p>Background: {selectedCharacter.background.name}</p>
           <p>Level: {selectedCharacter.level}</p>
+
+
+<div className="character-modal-actions">
+  <button
+    className="primary-button"
+    type="button"
+    disabled={exportingCharacterId !== null}
+    onClick={() =>
+      void handleCharacterExport(
+        selectedCharacter.id,
+        selectedCharacter.name,
+      )
+    }
+  >
+    {exportingCharacterId === selectedCharacter.id
+      ? 'Generating PDF…'
+      : '↓ Download character PDF'}
+  </button>
+</div>
+
+{exportingCharacterId === selectedCharacter.id && (
+  <p className="export-status" role="status">
+    <span className="export-spinner" />
+    Твій персонаж готується до завантаження…
+  </p>
+)}
+
+{exportError && (
+  <p className="export-error" role="alert">
+    {exportError}
+  </p>
+)}
+
 
           <div className="character-stats">
             {(

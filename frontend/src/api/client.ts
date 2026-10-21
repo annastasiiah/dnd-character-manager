@@ -184,6 +184,69 @@ export function deleteCharacter(
   })
 }
 
+
+export type CharacterExportStatus = {
+  task_id: string
+  character_id: number
+  status: 'PENDING' | 'STARTED' | 'RETRY' | 'SUCCESS' | 'FAILURE'
+  created_at: string
+  updated_at: string
+  error: string | null
+}
+
+type CharacterExportRequest = {
+  task_id: string
+  status: string
+}
+
+export async function requestCharacterExport(
+  token: string,
+  characterId: number,
+): Promise<CharacterExportRequest> {
+  return request<CharacterExportRequest>(
+    `/characters/${characterId}/export`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  )
+}
+
+export async function getCharacterExportStatus(
+  token: string,
+  taskId: string,
+): Promise<CharacterExportStatus> {
+  return request<CharacterExportStatus>(
+    `/characters/exports/${encodeURIComponent(taskId)}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  )
+}
+
+export async function downloadCharacterExport(
+  token: string,
+  taskId: string,
+): Promise<Blob> {
+  const response = await fetch(
+    `${API_URL}/characters/exports/${encodeURIComponent(taskId)}/download`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  )
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    const message = body?.detail ?? `Не вдалося завантажити PDF (${response.status})`
+    throw new Error(
+      typeof message === 'string' ? message : JSON.stringify(message),
+    )
+  }
+
+  return response.blob()
+}
+
+
 export type Spell = {
   id: number
   name: string
