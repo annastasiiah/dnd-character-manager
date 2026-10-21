@@ -54,7 +54,7 @@ def create_class(
             detail="Class already exists",
         )
 
-    new_class = CharacterClass(name=class_data.name)
+    new_class = CharacterClass(**class_data.model_dump())
 
     db.add(new_class)
     db.commit()

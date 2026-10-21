@@ -7,12 +7,17 @@ import {
 } from './api/client'
 import './Compendium.css'
 
+
 type Entry = {
   id: number
   name: string
   description?: string | null
   speed?: number | null
+  primary_ability?: string | null
+  hit_die?: string | null
+  skill_proficiencies?: string[] | null
 }
+
 
 type Category = 'races' | 'classes' | 'backgrounds'
 
@@ -21,6 +26,10 @@ const categories: { id: Category; label: string }[] = [
   { id: 'classes', label: 'Classes' },
   { id: 'backgrounds', label: 'Backgrounds' },
 ]
+
+function entriesDescription(entry: Entry) {
+  return entry.description?.trim() || ''
+}
 
 export default function Compendium() {
   const [category, setCategory] = useState<Category>('races')
@@ -186,13 +195,44 @@ export default function Compendium() {
                   </div>
                 )}
 
-                {category !== 'races' && (
-                  <p className="compendium-description">
-                    {category === 'classes'
-                      ? 'A path to shape your adventurer.'
-                      : 'A story that shaped your character.'}
-                  </p>
-                )}
+                
+{category !== 'races' && (
+  <>
+    {entriesDescription(entry) && (
+      <p className="compendium-description">
+        {entriesDescription(entry)}
+      </p>
+    )}
+
+    {category === 'classes' && (
+      <>
+        {entry.primary_ability && (
+          <div className="compendium-stat">
+            <span>Primary Ability</span>
+            <strong>{entry.primary_ability}</strong>
+          </div>
+        )}
+
+        {entry.hit_die && (
+          <div className="compendium-stat">
+            <span>Hit Die</span>
+            <strong>{entry.hit_die}</strong>
+          </div>
+        )}
+      </>
+    )}
+
+    {category === 'backgrounds' &&
+      entry.skill_proficiencies &&
+      entry.skill_proficiencies.length > 0 && (
+        <p className="compendium-description">
+          <strong>Skills:</strong>{' '}
+          {entry.skill_proficiencies.join(', ')}
+        </p>
+      )}
+  </>
+)}
+
 
                 <span className="compendium-card-action">
                   View details <span aria-hidden="true">↗</span>
@@ -237,26 +277,68 @@ export default function Compendium() {
 
             <h2 id="compendium-modal-title">{selectedEntry.name}</h2>
 
-            {category === 'races' ? (
-              <>
-                {selectedEntry.description && (
-                  <p className="compendium-modal-description">
-                    {selectedEntry.description}
-                  </p>
-                )}
+            
+{category === 'races' ? (
+  <>
+    {selectedEntry.description && (
+      <p className="compendium-modal-description">
+        {selectedEntry.description}
+      </p>
+    )}
 
-                {selectedEntry.speed != null && (
-                  <div className="compendium-stat">
-                    <span>Speed</span>
-                    <strong>{selectedEntry.speed} ft.</strong>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="compendium-modal-description">
-                Additional details for this entry are not available yet.
-              </p>
-            )}
+    {selectedEntry.speed != null && (
+      <div className="compendium-stat">
+        <span>Speed</span>
+        <strong>{selectedEntry.speed} ft.</strong>
+      </div>
+    )}
+  </>
+) : category === 'classes' ? (
+  <>
+    {selectedEntry.description && (
+      <p className="compendium-modal-description">
+        {selectedEntry.description}
+      </p>
+    )}
+
+    {selectedEntry.primary_ability && (
+      <div className="compendium-stat">
+        <span>Primary Ability</span>
+        <strong>{selectedEntry.primary_ability}</strong>
+      </div>
+    )}
+
+    {selectedEntry.hit_die && (
+      <div className="compendium-stat">
+        <span>Hit Die</span>
+        <strong>{selectedEntry.hit_die}</strong>
+      </div>
+    )}
+  </>
+) : (
+  <>
+    {selectedEntry.description && (
+      <p className="compendium-modal-description">
+        {selectedEntry.description}
+      </p>
+    )}
+
+    {selectedEntry.skill_proficiencies &&
+      selectedEntry.skill_proficiencies.length > 0 && (
+        <div className="compendium-modal-skills">
+          <h3>Skill Proficiencies</h3>
+          <div className="compendium-skill-list">
+            {selectedEntry.skill_proficiencies.map((skill) => (
+              <span key={skill} className="compendium-skill">
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+  </>
+)}
+
           </section>
         </div>
       )}

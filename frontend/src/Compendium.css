@@ -336,3 +336,29 @@
     font-size: 23px;
   }
 }
+
+
+.compendium-modal-skills {
+  margin-top: 24px;
+}
+
+.compendium-modal-skills h3 {
+  margin: 0 0 12px;
+  color: #e3d5ff;
+  font-size: 15px;
+}
+
+.compendium-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.compendium-skill {
+  padding: 7px 11px;
+  border: 1px solid rgba(190, 166, 230, 0.25);
+  border-radius: 8px;
+  background: rgba(167, 139, 223, 0.12);
+  color: #d9c7ff;
+  font-size: 13px;
+}

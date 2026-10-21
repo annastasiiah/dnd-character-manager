@@ -94,17 +94,41 @@ export function getCharacters(token: string) {
   });
 }
 
+
+export type Race = {
+  id: number;
+  name: string;
+  description?: string | null;
+  speed?: number | null;
+};
+
+export type CharacterClassEntry = {
+  id: number;
+  name: string;
+  description?: string | null;
+  primary_ability?: string | null;
+  hit_die?: string | null;
+};
+
+export type Background = {
+  id: number;
+  name: string;
+  description?: string | null;
+  skill_proficiencies?: string[] | null;
+};
+
 export function getRaces() {
-  return request<{ id: number; name: string }[]>("/races");
+  return request<Race[]>("/races");
 }
 
 export function getClasses() {
-  return request<{ id: number; name: string }[]>("/classes");
+  return request<CharacterClassEntry[]>("/classes");
 }
 
 export function getBackgrounds() {
-  return request<{ id: number; name: string }[]>("/backgrounds");
+  return request<Background[]>("/backgrounds");
 }
+
 
 export type CharacterCreate = {
   name: string

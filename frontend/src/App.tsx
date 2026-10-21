@@ -6,7 +6,6 @@ import AuthForm from './AuthForm'
 import {
   getCharacters,
   getMe,
-  updateCharacter,
   deleteCharacter,
   type Character,
   type User,
@@ -92,22 +91,6 @@ function App() {
     setError('')
   }
 
-  async function handleCharacterCreated() {
-  if (!token) return
-
-  try {
-    const updatedCharacters = await getCharacters(token)
-    setCharacters(updatedCharacters)
-    setShowCreateForm(false)
-    setError('')
-  } catch (err) {
-    setError(
-      err instanceof Error
-        ? err.message
-        : 'Персонажа створено, але не вдалося оновити список.',
-    )
-  }
-}
 
 async function handleCharacterDeleted(characterId: number) {
   if (!token) return

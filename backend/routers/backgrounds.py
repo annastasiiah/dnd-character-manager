@@ -58,7 +58,7 @@ def create_background(
             detail="Background already exists",
         )
 
-    new_background = CharacterBackground(name=background_data.name)
+    new_background = CharacterBackground(**background_data.model_dump())
 
     db.add(new_background)
     db.commit()
