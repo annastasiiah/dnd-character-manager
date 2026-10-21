@@ -1,23 +1,25 @@
 import os
 from pathlib import Path
-from fastapi.responses import FileResponse
-from fastapi import APIRouter, Depends, HTTPException, status
 from uuid import uuid4
+
+from celery.exceptions import OperationalError
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, selectinload
-from tasks.character_export import export_character_pdf
 
 from database import get_db
 from dependencies.auth import get_current_user
 from models.background import CharacterBackground
 from models.character import Character
-from models.character_export import CharacterExport
 from models.character_class import CharacterClass
+from models.character_export import CharacterExport
 from models.character_spell import CharacterSpell
 from models.race import Race
 from models.spell import Spell
 from models.user import User
 from schemas.character import CharacterCreate, CharacterResponse, CharacterUpdate
 from schemas.spell import CharacterSpellCreate, SpellResponse
+from tasks.character_export import export_character_pdf
 
 router = APIRouter(prefix="/characters", tags=["Characters"])
 
@@ -77,7 +79,7 @@ def request_character_export(
             },
             task_id=task_id,
         )
-    except Exception:
+    except OperationalError:
         export.status = "FAILURE"
         export.error = "Failed to enqueue export task"
         db.commit()

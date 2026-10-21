@@ -1,13 +1,13 @@
 import os
 from pathlib import Path
 
-from celery_app import celery_app
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from celery_app import celery_app
 from database import SessionLocal
-from models import Character, CharacterExport
 from exporting.character_pdf import generate_character_pdf
+from models import Character, CharacterExport
 
 
 @celery_app.task(bind=True, name="tasks.character_export.export_character_pdf")

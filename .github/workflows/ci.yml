@@ -1,0 +1,66 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: dnd_manager_test
+          POSTGRES_USER: dnd_user
+          POSTGRES_PASSWORD: 12345
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dnd_user -d dnd_manager_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      DATABASE_URL: postgresql+psycopg://dnd_user:12345@localhost:5432/dnd_manager_test
+      TEST_DATABASE_URL: postgresql+psycopg://dnd_user:12345@localhost:5432/dnd_manager_test
+      SECRET_KEY: ci-test-secret-key-not-for-production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --frozen --all-groups
+
+      - name: Check Python code with Ruff
+        run: uv run ruff check .
+
+      - name: Apply database migrations
+        run: uv run alembic upgrade head
+
+      - name: Run backend tests
+        run: uv run pytest -q
+
+      - name: Verify generated PDF
+        run: |
+          uv run python -c "from pathlib import Path; p = Path('test_character.pdf'); assert p.is_file() and p.read_bytes().startswith(b'%PDF-'), 'PDF generation failed'; print(f'PDF verified: {p.stat().st_size} bytes')"

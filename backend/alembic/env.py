@@ -1,14 +1,9 @@
 import os
 from logging.config import fileConfig
 
-import models  # noqa: F401
-from alembic import context
 from sqlalchemy import create_engine
-from database import Base, engine
 
-from logging.config import fileConfig
-
-import models  # noqa: F401  -- registers every model on Base for autogenerate
+import models  # noqa: F401
 from alembic import context
 from database import Base, engine
 
