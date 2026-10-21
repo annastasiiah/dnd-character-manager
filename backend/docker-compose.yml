@@ -34,7 +34,7 @@ services:
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       EXPORTS_DIR: /app/exports
-      CORS_ORIGINS: http://localhost:5173
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:8080"
     ports:
       - "8000:8000"
     volumes:

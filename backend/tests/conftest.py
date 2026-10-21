@@ -16,7 +16,7 @@ from security import hash_password
 
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
-    "postgresql+psycopg://dnd_user:12345@localhost:5432/dnd_manager_test",
+    "postgresql+psycopg://dnd_user:changeme@localhost:5433/dnd_manager_test",
 )
 
 test_engine = create_engine(TEST_DATABASE_URL)
