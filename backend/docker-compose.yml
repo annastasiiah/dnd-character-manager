@@ -4,45 +4,78 @@ services:
     environment:
       POSTGRES_DB: dnd_manager
       POSTGRES_USER: dnd_user
-      POSTGRES_PASSWORD: dnd_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Add POSTGRES_PASSWORD to backend/.env}
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dnd_user -d dnd_manager"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
   redis:
     image: redis:7
-    ports:
-      - "6379:6379"
-      
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
   api:
     build: .
-    ports:
-      - "8000:8000"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql+psycopg://dnd_user:dnd_password@db:5432/dnd_manager
-      SECRET_KEY: 2dfdc2d2215b61148eb92bcee3a3aaee820b29345ff6ecc0ee618d2512173cfa
-      ACCESS_TOKEN_EXPIRE_MINUTES: 30
-      CORS_ORIGINS: http://localhost:5173
+      DATABASE_URL: postgresql+psycopg://dnd_user:${POSTGRES_PASSWORD}@db:5432/dnd_manager
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/1
+      EXPORTS_DIR: /app/exports
+      CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "8000:8000"
     volumes:
       - exports_data:/app/exports
     depends_on:
-      - db
-  
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   worker:
     build: .
     command: uv run celery -A celery_app:celery_app worker --loglevel=info
+    env_file:
+      - .env
     environment:
-      SECRET_KEY: 2dfdc2d2215b61148eb92bcee3a3aaee820b29345ff6ecc0ee618d2512173cfa
+      DATABASE_URL: postgresql+psycopg://dnd_user:${POSTGRES_PASSWORD}@db:5432/dnd_manager
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/1
-      DATABASE_URL: postgresql+psycopg://dnd_user:dnd_password@db:5432/dnd_manager
+      EXPORTS_DIR: /app/exports
     volumes:
       - exports_data:/app/exports
     depends_on:
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    restart: unless-stopped
 
 volumes:
   postgres_data:
