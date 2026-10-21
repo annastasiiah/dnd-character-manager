@@ -1,292 +1,104 @@
 # 🎲 D&D Character Manager
 
-**A FastAPI + PostgreSQL backend for creating and managing D&D characters.**
+**A full-stack Dungeons & Dragons character management application.**
 
-D&D Character Manager is a portfolio project built around a simple idea: make character management easier by keeping characters, spells, and D&D reference data in one place.
+[![Backend CI](https://github.com/annastasiiah/dnd-character-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/annastasiiah/dnd-character-manager/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-REST_API-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-TypeScript-61DAFB?logo=react&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 
-The project currently focuses on the backend and REST API, with a frontend planned as the next major stage.
+D&D Character Manager is a full-stack application for creating, organizing, and managing D&D characters. It combines a React frontend with a FastAPI REST API and PostgreSQL database, with authentication, spell management, and background PDF exports.
 
----
+The project demonstrates backend development, database design, API security, asynchronous task processing, automated testing, and Docker-based deployment.
 
 ## ✨ Features
 
-* 🔐 JWT authentication and authorization
-* 👤 User accounts and profile management
-* 🧙 Per-user character CRUD
-* 🧝 D&D races
-* ⚔️ D&D classes
-* 📜 Character backgrounds
-* ✨ Spells and character spell management
-* 👑 Admin-only reference data and user management
-* 🗃️ PostgreSQL database
-* 🔄 Alembic database migrations
-* 🧪 Automated API tests
-* 📖 Interactive Swagger documentation
-* ❤️ Health check endpoint
-
----
+- 🔐 **Authentication and authorization** — user registration, login, JWT access tokens, password hashing, and role-based access control.
+- 🧙 **Character management** — create, view, update, and delete characters with ability scores and character details.
+- 🧝 **D&D reference data** — races, classes, and backgrounds.
+- ✨ **Spell management** — browse and filter spells, search by name, and manage spells assigned to characters.
+- 👤 **User profiles** — view and update account information.
+- 👑 **Administration** — administrative user management and protected reference-data operations.
+- 📄 **PDF export** — generate character sheets through background tasks.
+- 🗃️ **Relational database** — PostgreSQL with SQLAlchemy ORM and Alembic migrations.
+- 🧪 **Automated tests** — API tests with pytest.
+- 🔍 **Code quality checks** — Ruff linting and GitHub Actions CI.
+- 📖 **Interactive API documentation** — Swagger UI and ReDoc.
 
 ## 🛠️ Tech Stack
 
-| Technology       | Purpose                     |
-| ---------------- | --------------------------- |
-| **Python 3.13**  | Core language               |
-| **FastAPI**      | REST API framework          |
-| **SQLAlchemy 2** | ORM and database access     |
-| **PostgreSQL**   | Relational database         |
-| **Alembic**      | Database migrations         |
-| **Pydantic**     | Data validation and schemas |
-| **JWT**          | Authentication              |
-| **Pytest**       | Automated testing           |
-| **Ruff**         | Linting and formatting      |
-| **uv**           | Dependency management       |
-
----
+| Technology | Purpose |
+|---|---|
+| Python 3.13 | Backend language |
+| FastAPI | REST API |
+| React + TypeScript | Frontend |
+| Vite | Frontend development and build tooling |
+| PostgreSQL | Relational database |
+| SQLAlchemy 2 | ORM and database access |
+| Alembic | Database schema migrations |
+| Pydantic | Data validation |
+| JWT | Authentication |
+| Celery | Background task processing |
+| Redis | Celery message broker and result backend |
+| ReportLab | PDF generation |
+| Pytest | Automated testing |
+| Ruff | Python linting |
+| uv | Python dependency management |
+| Docker Compose | Local multi-service environment |
+| GitHub Actions | Continuous integration |
 
 ## 🏗️ Architecture
 
-The backend is organized by responsibility:
+The application is organized into separate frontend and backend components.
 
 ```text
 dnd-character-manager/
-│
-├── alembic/
-│   └── versions/
-│
-├── dependencies/
-│   └── authentication & authorization dependencies
-│
-├── models/
-│   └── SQLAlchemy ORM models
-│
-├── routers/
-│   └── API endpoints
-│
-├── schemas/
-│   └── Pydantic request/response schemas
-│
-├── seed/
-│   └── D&D reference data
-│
-├── tests/
-│   └── pytest test suite
-│
-├── config.py
-├── database.py
-├── security.py
-├── main.py
-├── alembic.ini
-├── pyproject.toml
-└── README.md
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── backend/
+│   ├── alembic/
+│   ├── dependencies/
+│   ├── models/
+│   ├── routers/
+│   ├── schemas/
+│   ├── seed/
+│   ├── tasks/
+│   ├── tests/
+│   ├── main.py
+│   ├── database.py
+│   ├── config.py
+│   ├── celery_app.py
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── pyproject.toml
+└── frontend/
+    ├── src/
+    ├── Dockerfile
+    └── package.json
 ```
 
-The project keeps API routes, database models, validation schemas, authentication, and configuration separated so the application can grow without turning into a single large module.
+### How it works
 
----
+1. The React frontend sends HTTP requests to the FastAPI backend.
+2. FastAPI validates requests and applies authentication and authorization rules.
+3. SQLAlchemy communicates with PostgreSQL.
+4. Alembic manages database schema changes.
+5. Celery processes PDF export tasks using Redis as its broker.
+6. Docker Compose runs the frontend, API, database, Redis, and background worker as separate services.
 
-## 🔐 Authentication
+## 🚀 Getting Started
 
-The API uses JWT-based authentication.
+The easiest way to run the complete application locally is with Docker Compose.
 
-```text
-Registration
-     ↓
-Login
-     ↓
-JWT access token
-     ↓
-Authenticated requests
-```
+### Prerequisites
 
-### Current authentication functionality
+Install:
 
-* User registration
-* Login with OAuth2 password flow
-* JWT access tokens
-* Password hashing
-* Current-user endpoint
-* Password change
-* Role-based authorization
-* Admin password reset
-
-Access tokens expire after **30 minutes by default**.
-
-> Refresh tokens are not implemented yet. When an access token expires, the user must log in again.
-
----
-
-## 🧙 Characters
-
-Characters are the core entity of the application.
-
-Each character can have:
-
-* Name
-* Level
-* Race
-* Class
-* Background
-* Ability scores
-* Known spells
-
-Characters belong to individual users, and ownership is enforced by the API.
-
-Another user's character is intentionally returned as `404 Not Found` rather than `403 Forbidden`, preventing character existence from being exposed.
-
-### Character reference data
-
-Character responses include both reference IDs and expanded reference objects:
-
-```json
-{
-  "id": 1,
-  "name": "Arwen",
-  "level": 5,
-  "race_id": 2,
-  "class_id": 1,
-  "background_id": 3,
-  "race": {
-    "id": 2,
-    "name": "Elf",
-    "description": "...",
-    "speed": 30
-  },
-  "character_class": {
-    "id": 1,
-    "name": "Wizard"
-  },
-  "background": {
-    "id": 3,
-    "name": "Sage"
-  },
-  "strength": 10,
-  "dexterity": 14,
-  "constitution": 12,
-  "intelligence": 16,
-  "wisdom": 13,
-  "charisma": 15
-}
-```
-
-The field is called `character_class` rather than `class` to avoid ambiguity with Python and framework conventions.
-
----
-
-## ✨ Spells
-
-Spells are available as shared reference data and can be assigned to individual characters.
-
-The API supports:
-
-* Spell CRUD
-* Pagination
-* Level filtering
-* School filtering
-* Name search
-* Adding spells to characters
-* Removing spells from characters
-* Duplicate prevention
-
-### Example
-
-```text
-GET /spells?level=3&school=evocation&search=fire&limit=50&offset=0
-```
-
-Response:
-
-```json
-{
-  "items": [],
-  "total": 319,
-  "limit": 50,
-  "offset": 0
-}
-```
-
-The spell endpoint is paginated because the reference dataset can grow significantly larger than the other reference resources.
-
----
-
-## 📖 API Documentation
-
-Once the development server is running:
-
-**Swagger UI**
-
-```text
-http://localhost:8000/docs
-```
-
-**ReDoc**
-
-```text
-http://localhost:8000/redoc
-```
-
-Swagger is the easiest way to explore and manually test the API.
-
----
-
-## 🔌 API Endpoints
-
-### Health
-
-| Method | Endpoint  | Auth |
-| ------ | --------- | ---- |
-| GET    | `/health` | —    |
-
-### Users
-
-| Method | Endpoint              | Auth |
-| ------ | --------------------- | ---- |
-| POST   | `/users/registration` | —    |
-| POST   | `/users/login`        | —    |
-| GET    | `/users/me`           | User |
-| PATCH  | `/users/me`           | User |
-
-### Characters
-
-| Method | Endpoint           | Auth |
-| ------ | ------------------ | ---- |
-| GET    | `/characters`      | User |
-| POST   | `/characters`      | User |
-| GET    | `/characters/{id}` | User |
-| PATCH  | `/characters/{id}` | User |
-| DELETE | `/characters/{id}` | User |
-
-### Character spells
-
-| Method | Endpoint                             | Auth |
-| ------ | ------------------------------------ | ---- |
-| GET    | `/characters/{id}/spells`            | User |
-| POST   | `/characters/{id}/spells`            | User |
-| DELETE | `/characters/{id}/spells/{spell_id}` | User |
-
-### Reference data
-
-| Resource    | Public | Admin                 |
-| ----------- | ------ | --------------------- |
-| Races       | GET    | POST / PATCH / DELETE |
-| Classes     | GET    | POST / PATCH / DELETE |
-| Backgrounds | GET    | POST / PATCH / DELETE |
-| Spells      | GET    | POST / PATCH / DELETE |
-
-### Administration
-
-Admin users can manage users through the `/admin/users...` endpoints.
-
-For the complete API reference, see Swagger.
-
----
-
-## 🚀 Quick Start
-
-### Requirements
-
-* Python 3.13
-* PostgreSQL
-* `uv`
+- [Git](https://git-scm.com/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine with the Compose plugin
 
 ### 1. Clone the repository
 
@@ -295,254 +107,211 @@ git clone https://github.com/annastasiiah/dnd-character-manager.git
 cd dnd-character-manager
 ```
 
-### 2. Install dependencies
+### 2. Configure environment variables
+
+Create your local environment file from the example:
 
 ```bash
-uv sync
+cp backend/.env.example backend/.env
 ```
 
-`uv` uses `pyproject.toml` and `uv.lock` to install the project dependencies.
-
-### 3. Configure environment variables
-
-Copy the example configuration:
-
-```bash
-cp .env.example .env
-```
-
-At minimum, configure:
+Open `backend/.env` and set the following values:
 
 ```env
-DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/dnd_manager
-SECRET_KEY=your-secret-key
+DATABASE_URL=postgresql+psycopg://dnd_user:changeme@localhost:5432/dnd_manager
+SECRET_KEY=replace-me-with-a-random-secret
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+CORS_ORIGINS=http://localhost:5173
+TEST_DATABASE_URL=postgresql+psycopg://dnd_user:changeme@localhost:5432/dnd_manager_test
+
+POSTGRES_PASSWORD=change_me_to_a_long_random_password
 ```
 
-Generate a secure secret key with:
+Use your own strong values for `SECRET_KEY` and `POSTGRES_PASSWORD`. Keep the `.env` file private and never commit it to Git.
+
+You can generate a JWT signing key with Python:
 
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-`.env` is gitignored. Changes to environment configuration should be reflected in `.env.example`.
+The Docker Compose configuration supplies the correct internal PostgreSQL connection URL to the API and worker containers. The database is exposed on port `5433` on your host machine.
 
-### 4. Create databases
+### 3. Build and start the services
 
-```bash
-createdb dnd_manager
-createdb dnd_manager_test
-```
-
-### 5. Run migrations
+From the repository root, run:
 
 ```bash
-uv run alembic upgrade head
+docker compose -f backend/docker-compose.yml up --build -d
 ```
 
-### 6. Load reference data
+Docker will build the frontend and backend images and start the following services:
+
+| Service | Purpose | Local address |
+|---|---|---|
+| Frontend | React application | http://localhost:8080 |
+| API | FastAPI backend | http://localhost:8000 |
+| PostgreSQL | Database | `localhost:5433` |
+| Redis | Background task broker | Internal Docker network |
+| Worker | Asynchronous PDF exports | Internal Docker network |
+
+### 4. Apply database migrations
+
+On the first run, create the database schema by applying the migrations:
 
 ```bash
-uv run python -m seed
+docker compose -f backend/docker-compose.yml exec api uv run alembic upgrade head
 ```
 
-This loads the initial races, classes, backgrounds, and spells.
+### 5. Load the reference data
 
-### 7. Start the server
+Populate the database with the initial D&D races, classes, backgrounds, and spells:
 
 ```bash
-uv run uvicorn main:app --reload
+docker compose -f backend/docker-compose.yml exec api uv run python -m seed
 ```
 
-The API will be available at:
+Run this initialization step when setting up a fresh database. If you restart the application later, you normally do not need to seed it again.
 
-```text
-http://localhost:8000
-```
+### 6. Open the application
 
-Health check:
+Once the services are running, open:
 
-```text
-GET /health
-```
+- **Frontend:** http://localhost:8080
+- **Swagger API documentation:** http://localhost:8000/docs
+- **ReDoc API documentation:** http://localhost:8000/redoc
+- **Health check:** http://localhost:8000/health
 
----
+The health endpoint should return a JSON response indicating that the API is running.
 
-## ⚙️ Environment Variables
+### Useful Docker commands
 
-| Variable                      | Required   | Default                 | Purpose                           |
-| ----------------------------- | ---------- | ----------------------- | --------------------------------- |
-| `DATABASE_URL`                | Yes        | —                       | PostgreSQL DSN                    |
-| `SECRET_KEY`                  | Yes        | —                       | JWT signing key                   |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | No         | `30`                    | Access-token lifetime             |
-| `CORS_ORIGINS`                | No         | `http://localhost:5173` | Allowed browser origins           |
-| `TEST_DATABASE_URL`           | Tests only | Local test DB           | PostgreSQL database used by tests |
-
-Configuration is loaded and validated centrally in `config.py`.
-
-Missing required configuration causes the application to fail at startup with a clear validation error.
-
----
-
-## 🧪 Testing
-
-The project uses **pytest** and runs the test suite against a real PostgreSQL database.
+Check service status:
 
 ```bash
-uv run pytest
+docker compose -f backend/docker-compose.yml ps
 ```
 
-The test database must be separate from the development database because test fixtures clean up database rows between tests.
-
-The current test suite contains **160 tests** covering:
-
-* Authentication
-* User management
-* Authorization
-* Characters
-* Races
-* Classes
-* Backgrounds
-* Spells
-* Character spells
-* Validation
-* Error handling
-* Health checks
-
-### Linting and formatting
+View application logs:
 
 ```bash
-uv run ruff check .
-uv run ruff format .
+docker compose -f backend/docker-compose.yml logs -f
 ```
 
----
+View logs for a specific service:
 
-## 🌐 Frontend Integration
-
-The backend is designed to be consumed by a separate frontend application.
-
-### Base URL
-
-```text
-http://localhost:8000
+```bash
+docker compose -f backend/docker-compose.yml logs -f api
 ```
 
-There is currently no `/api` prefix.
+Stop the application:
 
-Collection routes do not use trailing slashes:
-
-```text
-GET /classes
+```bash
+docker compose -f backend/docker-compose.yml down
 ```
 
-rather than:
+This stops and removes the containers while preserving named database and export volumes. **Do not add `-v`** unless you intentionally want to delete the persisted data.
 
-```text
-GET /classes/
-```
+## 🔌 API Overview
 
-### Login
+The REST API exposes endpoints for authentication, users, characters, spells, and reference data.
 
-`POST /users/login` uses an OAuth2-compatible form body rather than JSON.
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Check API status |
+| `POST` | `/users/registration` | Register an account |
+| `POST` | `/users/login` | Authenticate and obtain a token |
+| `GET` | `/users/me` | Retrieve the current user's profile |
+| `PATCH` | `/users/me` | Update the current user's profile |
+| `GET` | `/characters` | List the current user's characters |
+| `POST` | `/characters` | Create a character |
+| `GET` | `/characters/{id}` | Retrieve a character |
+| `PATCH` | `/characters/{id}` | Update a character |
+| `DELETE` | `/characters/{id}` | Delete a character |
+| `GET` | `/spells` | Browse and filter spells |
+| `GET` | `/races` | Browse races |
+| `GET` | `/classes` | Browse classes |
+| `GET` | `/backgrounds` | Browse backgrounds |
 
-```typescript
-const body = new URLSearchParams({
-  username: email,
-  password,
-});
+Additional endpoints support character spell management, reference-data administration, user administration, and PDF exports.
 
-const response = await fetch(`${API}/users/login`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/x-www-form-urlencoded",
-  },
-  body,
-});
+For request schemas, response examples, and the complete endpoint list, see the interactive documentation at `/docs`.
 
-const {
-  access_token,
-  token_type,
-  expires_in,
-} = await response.json();
-```
+## 🔐 Authentication and Security
 
-Protected requests use:
+The API uses JWT bearer authentication to protect user-specific operations.
 
-```text
+- Passwords are hashed before storage.
+- Protected endpoints require a valid access token.
+- Authorization rules restrict administrative operations.
+- Character ownership is enforced by the backend.
+- Access tokens expire after 30 minutes by default.
+- Requests and responses are validated using FastAPI and Pydantic.
+
+For protected endpoints, include the token in the request header:
+
+```http
 Authorization: Bearer <access_token>
 ```
 
-`expires_in` is returned in seconds and is `1800` by default.
+## 🧪 Testing and Code Quality
 
----
+The backend test suite uses pytest and PostgreSQL. Tests require a separate test database because fixtures modify database records.
 
-## 📡 API Error Handling
+To run the backend checks locally, first configure the test database using the instructions in `backend/.env.example`, then run:
 
-The API follows consistent HTTP status codes:
+```bash
+cd backend
 
-| Status | Meaning                            |
-| ------ | ---------------------------------- |
-| `201`  | Resource created                   |
-| `204`  | Resource deleted                   |
-| `400`  | Invalid request / empty PATCH      |
-| `401`  | Authentication required or invalid |
-| `403`  | Insufficient permissions           |
-| `404`  | Resource not found                 |
-| `409`  | Duplicate or conflicting resource  |
-| `422`  | Request validation error           |
+uv sync --frozen --all-groups
 
-Most errors use:
-
-```json
-{
-  "detail": "Error message"
-}
+uv run ruff check .
+uv run alembic upgrade head
+uv run pytest -q
 ```
 
-FastAPI validation errors (`422`) use the standard array of field-level errors.
+Ensure that the database configuration points to the intended database before running tests. Do not use a database containing data you need to preserve.
 
----
+GitHub Actions runs backend linting, database migrations, automated tests, and a PDF-generation check on pushes and pull requests targeting `main`.
+
+[View CI workflow](https://github.com/annastasiiah/dnd-character-manager/actions/workflows/ci.yml)
 
 ## 🗄️ Database Migrations
 
-Create a new migration:
+Database schema changes are managed with Alembic.
+
+Apply existing migrations:
+
+```bash
+cd backend
+uv run alembic upgrade head
+```
+
+Generate a migration after changing SQLAlchemy models:
 
 ```bash
 uv run alembic revision --autogenerate -m "describe the change"
 ```
 
-Apply migrations:
+Review autogenerated migrations before committing them.
 
-```bash
-uv run alembic upgrade head
-```
+## 📌 Project Goals
 
-Always review autogenerated migrations before committing them.
+This project is part of my journey from mathematics and teaching into software development.
 
-When the schema changes, the test database must also be migrated.
+I wanted to build something practical that combines problem-solving, backend engineering, databases, and my interest in tabletop role-playing games. The project is an opportunity to apply software development concepts in a growing application rather than isolated exercises.
 
----
+The long-term goal is to continue improving the application and expand its functionality.
 
-## 🌱 Project Status
+## 👩‍💻 Author
 
-**🚧 In active development**
+**Anastasiia Horpynyuk**
 
-The backend API is currently the main focus. The next major stage is building the frontend and connecting it to the existing REST API.
-
-The long-term goal is to turn D&D Character Manager into a complete full-stack application for managing D&D characters and their adventures.
-
----
-
-## 👩‍💻 About the Project
-
-This project is part of my transition from mathematics and teaching into software development.
-
-I am using it to explore how a real application evolves from database models and REST endpoints into a complete full-stack product.
-
-The project combines things I genuinely enjoy — **Python, software development, games, fantasy worlds, and problem solving.**
+- GitHub: [@annastasiiah](https://github.com/annastasiiah)
+- LinkedIn: [Connect with me](https://www.linkedin.com/in/anastasia-horpynyuk-0397a8420/)
 
 ---
 
 <p align="center">
-  🎲 Built with Python, FastAPI & a little bit of magic ✨
+  Built with Python, React, and a little bit of fantasy magic 🎲✨
 </p>
