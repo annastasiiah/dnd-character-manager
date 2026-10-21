@@ -45,6 +45,77 @@ function App() {
 
   const [characterTab, setCharacterTab] =
     useState<'overview' | 'spells'>('overview')
+  const [characterSearch, setCharacterSearch] = useState('')
+  const [raceFilter, setRaceFilter] = useState('all')
+  const [classFilter, setClassFilter] = useState('all')
+  const [characterSort, setCharacterSort] = useState('name-asc')
+
+
+const filteredCharacters = characters
+  .filter((character) =>
+    character.name
+      .toLocaleLowerCase()
+      .includes(characterSearch.trim().toLocaleLowerCase()),
+  )
+  .filter(
+    (character) =>
+      raceFilter === 'all' ||
+      String(character.race_id) === raceFilter,
+  )
+  .filter(
+    (character) =>
+      classFilter === 'all' ||
+      String(character.class_id) === classFilter,
+  )
+  .sort((a, b) => {
+    switch (characterSort) {
+      case 'name-desc':
+        return b.name.localeCompare(a.name)
+
+      case 'level-desc':
+        return b.level - a.level || a.name.localeCompare(b.name)
+
+      case 'level-asc':
+        return a.level - b.level || a.name.localeCompare(b.name)
+
+      default:
+        return a.name.localeCompare(b.name)
+    }
+  })
+
+const races = Array.from(
+  new Map(
+    characters.map((character) => [
+      character.race_id,
+      character.race.name,
+    ]),
+  ),
+  ([id, name]) => ({ id, name }),
+).sort((a, b) => a.name.localeCompare(b.name))
+
+const classes = Array.from(
+  new Map(
+    characters.map((character) => [
+      character.class_id,
+      character.character_class.name,
+    ]),
+  ),
+  ([id, name]) => ({ id, name }),
+).sort((a, b) => a.name.localeCompare(b.name))
+
+const hasActiveFilters =
+  characterSearch.trim() !== '' ||
+  raceFilter !== 'all' ||
+  classFilter !== 'all' ||
+  characterSort !== 'name-asc'
+
+function resetCharacterFilters() {
+  setCharacterSearch('')
+  setRaceFilter('all')
+  setClassFilter('all')
+  setCharacterSort('name-asc')
+}
+
 
   useEffect(() => {
     if (!token) {
@@ -397,18 +468,87 @@ function App() {
                   </button>
                 </div>
 
-                <div className="collection-toolbar">
-                  <span>
-                    {characters.length}{' '}
-                    {characters.length === 1
-                      ? 'character'
-                      : 'characters'}
-                  </span>
+                
+<div className="collection-toolbar">
+  <span className="collection-count">
+    Showing <strong>{filteredCharacters.length}</strong> of{' '}
+    <strong>{characters.length}</strong>{' '}
+    {characters.length === 1 ? 'character' : 'characters'}
+  </span>
 
-                  <button className="filter-button" type="button">
-                    ☷ &nbsp; All characters
-                  </button>
-                </div>
+  {hasActiveFilters && (
+    <button
+      className="reset-filters-button"
+      type="button"
+      onClick={resetCharacterFilters}
+    >
+      Reset filters
+    </button>
+  )}
+</div>
+
+<div className="character-filters">
+  <label className="character-search">
+    <span aria-hidden="true">⌕</span>
+    <input
+      type="search"
+      value={characterSearch}
+      onChange={(event) => setCharacterSearch(event.target.value)}
+      placeholder="Search characters..."
+      aria-label="Search characters by name"
+    />
+  </label>
+
+  <label className="character-filter-field">
+    <span>Race</span>
+    <select
+      value={raceFilter}
+      onChange={(event) => setRaceFilter(event.target.value)}
+      aria-label="Filter by race"
+    >
+      <option value="all">All races</option>
+      {races.map((race) => (
+        <option key={race.id} value={String(race.id)}>
+          {race.name}
+        </option>
+      ))}
+    </select>
+  </label>
+
+  <label className="character-filter-field">
+    <span>Class</span>
+    <select
+      value={classFilter}
+      onChange={(event) => setClassFilter(event.target.value)}
+      aria-label="Filter by class"
+    >
+      <option value="all">All classes</option>
+      {classes.map((characterClass) => (
+        <option
+          key={characterClass.id}
+          value={String(characterClass.id)}
+        >
+          {characterClass.name}
+        </option>
+      ))}
+    </select>
+  </label>
+
+  <label className="character-filter-field">
+    <span>Sort by</span>
+    <select
+      value={characterSort}
+      onChange={(event) => setCharacterSort(event.target.value)}
+      aria-label="Sort characters"
+    >
+      <option value="name-asc">Name: A–Z</option>
+      <option value="name-desc">Name: Z–A</option>
+      <option value="level-desc">Level: highest first</option>
+      <option value="level-asc">Level: lowest first</option>
+    </select>
+  </label>
+</div>
+
 
                 {error && (
                   <p className="auth-error" role="alert">
@@ -416,80 +556,86 @@ function App() {
                   </p>
                 )}
 
-                {characters.length === 0 ? (
-                  <div className="character-empty">
-                    <span>✧</span>
-                    <h3>Your story begins here</h3>
-                    <p>You haven't created any characters yet.</p>
-                  </div>
-                ) : (
-                  <div className="character-grid">
-                    {characters.map((character) => (
-                      <article
-                        className="character-card"
-                        key={character.id}
-                      >
-                        <div className="character-art lavender">
-                          <span className="character-rune">✧</span>
-                          <span className="character-initials">
-                            {character.name.slice(0, 2).toUpperCase()}
-                          </span>
-                          <span className="level-badge">
-                            LVL {character.level}
-                          </span>
-                        </div>
+                
+{characters.length === 0 ? (
+  <div className="character-empty">
+    <span>✧</span>
+    <h3>Your story begins here</h3>
+    <p>You haven't created any characters yet.</p>
+  </div>
+) : filteredCharacters.length === 0 ? (
+  <div className="character-empty">
+    <span>⌕</span>
+    <h3>No characters found</h3>
+    <p>Try changing your search or filters.</p>
+    <button
+      className="secondary-button"
+      type="button"
+      onClick={resetCharacterFilters}
+    >
+      Reset filters
+    </button>
+  </div>
+) : (
+  <div className="character-grid">
+    {filteredCharacters.map((character) => (
+      <article className="character-card" key={character.id}>
+        <div className="character-art lavender">
+          <span className="character-rune">✧</span>
+          <span className="character-initials">
+            {character.name.slice(0, 2).toUpperCase()}
+          </span>
+          <span className="level-badge">LVL {character.level}</span>
+        </div>
 
-                        <div className="character-details">
-                          <div className="character-race">
-                            {character.race.name}
-                          </div>
+        <div className="character-details">
+          <div className="character-race">{character.race.name}</div>
+          <h3>{character.name}</h3>
 
-                          <h3>{character.name}</h3>
+          <div className="character-class">
+            <span>✦</span> {character.character_class.name}
+          </div>
 
-                          <div className="character-class">
-                            <span>✦</span>{' '}
-                            {character.character_class.name}
-                          </div>
+          <div className="character-actions">
+            <button
+              className="view-character"
+              type="button"
+              onClick={() => {
+                setCharacterTab('overview')
+                setExportError('')
+                setSelectedCharacter(character)
+              }}
+            >
+              View character <span>↗</span>
+            </button>
 
-                          <div className="character-actions">
-                            <button
-                              className="view-character"
-                              type="button"
-                              onClick={() => {
-                                setCharacterTab('overview')
-                                setExportError('')
-                                setSelectedCharacter(character)
-                              }}
-                            >
-                              View character <span>↗</span>
-                            </button>
+            <button
+              className="edit-character"
+              type="button"
+              onClick={() => {
+                setSelectedCharacter(null)
+                setEditingCharacter(character)
+              }}
+            >
+              Edit
+            </button>
 
-                            <button
-                              className="edit-character"
-                              type="button"
-                              onClick={() => {
-                                setSelectedCharacter(null)
-                                setEditingCharacter(character)
-                              }}
-                            >
-                              Edit
-                            </button>
+            <button
+              className="delete-character"
+              type="button"
+              onClick={() =>
+                void handleCharacterDeleted(character.id)
+              }
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+)}
 
-                            <button
-                              className="delete-character"
-                              type="button"
-                              onClick={() =>
-                                void handleCharacterDeleted(character.id)
-                              }
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
               </section>
 
               <footer className="page-footer">

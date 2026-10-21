@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import {
   getCharacterSpells,
@@ -15,18 +14,18 @@ type CharacterSpellsProps = {
   characterId: number
 }
 
-const spellLevels = [
+const SPELL_LEVELS = [
   { value: '', label: 'Усі рівні' },
   { value: '0', label: 'Заговір' },
-  { value: '1', label: 'Рівень 1' },
-  { value: '2', label: 'Рівень 2' },
-  { value: '3', label: 'Рівень 3' },
-  { value: '4', label: 'Рівень 4' },
-  { value: '5', label: 'Рівень 5' },
-  { value: '6', label: 'Рівень 6' },
-  { value: '7', label: 'Рівень 7' },
-  { value: '8', label: 'Рівень 8' },
-  { value: '9', label: 'Рівень 9' },
+  { value: '1', label: '1-й рівень' },
+  { value: '2', label: '2-й рівень' },
+  { value: '3', label: '3-й рівень' },
+  { value: '4', label: '4-й рівень' },
+  { value: '5', label: '5-й рівень' },
+  { value: '6', label: '6-й рівень' },
+  { value: '7', label: '7-й рівень' },
+  { value: '8', label: '8-й рівень' },
+  { value: '9', label: '9-й рівень' },
 ]
 
 export default function CharacterSpells({
@@ -36,11 +35,15 @@ export default function CharacterSpells({
   const [characterSpells, setCharacterSpells] = useState<Spell[]>([])
   const [availableSpells, setAvailableSpells] = useState<Spell[]>([])
   const [schools, setSchools] = useState<string[]>([])
+
   const [search, setSearch] = useState('')
   const [level, setLevel] = useState('')
   const [school, setSchool] = useState('')
-  const [loadingCharacterSpells, setLoadingCharacterSpells] = useState(true)
+
+  const [loadingCharacterSpells, setLoadingCharacterSpells] =
+    useState(true)
   const [loadingCatalogue, setLoadingCatalogue] = useState(true)
+
   const [busySpellId, setBusySpellId] = useState<number | null>(null)
   const [error, setError] = useState('')
 
@@ -49,11 +52,13 @@ export default function CharacterSpells({
 
     async function loadCharacterSpells() {
       setLoadingCharacterSpells(true)
-      setError('')
 
       try {
-        const result = await getCharacterSpells(token, characterId)
-        if (!cancelled) setCharacterSpells(result)
+        const spells = await getCharacterSpells(token, characterId)
+
+        if (!cancelled) {
+          setCharacterSpells(spells)
+        }
       } catch (err) {
         if (!cancelled) {
           setError(
@@ -63,7 +68,9 @@ export default function CharacterSpells({
           )
         }
       } finally {
-        if (!cancelled) setLoadingCharacterSpells(false)
+        if (!cancelled) {
+          setLoadingCharacterSpells(false)
+        }
       }
     }
 
@@ -83,7 +90,7 @@ export default function CharacterSpells({
       try {
         const [spellResult, schoolResult] = await Promise.all([
           getSpells({
-            search,
+            search: search.trim(),
             level: level === '' ? undefined : Number(level),
             school: school || undefined,
             limit: 100,
@@ -104,7 +111,9 @@ export default function CharacterSpells({
           )
         }
       } finally {
-        if (!cancelled) setLoadingCatalogue(false)
+        if (!cancelled) {
+          setLoadingCatalogue(false)
+        }
       }
     }
 
@@ -116,6 +125,10 @@ export default function CharacterSpells({
   }, [search, level, school])
 
   async function handleAddSpell(spell: Spell) {
+    if (characterSpells.some((item) => item.id === spell.id)) {
+      return
+    }
+
     setBusySpellId(spell.id)
     setError('')
 
@@ -148,6 +161,7 @@ export default function CharacterSpells({
 
     try {
       await removeCharacterSpell(token, characterId, spell.id)
+
       setCharacterSpells((current) =>
         current.filter((item) => item.id !== spell.id),
       )
@@ -166,36 +180,93 @@ export default function CharacterSpells({
     characterSpells.map((spell) => spell.id),
   )
 
+  const spellsByLevel = characterSpells.reduce<Record<string, number>>(
+    (result, spell) => {
+      const label =
+        spell.level === 0 ? 'Заговори' : `${spell.level}-й рівень`
+
+      result[label] = (result[label] ?? 0) + 1
+      return result
+    },
+    {},
+  )
+
   return (
     <div className="character-spells">
-      <section className="known-spells">
-        <div className="spells-section-heading">
-          <div>
-            <h3>Заклинання персонажа</h3>
-            <p>Відомі заклинання: {characterSpells.length}</p>
-          </div>
+      {error && (
+        <div className="character-spells-error" role="alert">
+          <p>{error}</p>
+          <button type="button" onClick={() => setError('')}>
+            Закрити
+          </button>
         </div>
+      )}
+
+      <section className="known-spells">
+        <header className="spells-section-heading">
+          <div>
+            <p className="spells-eyebrow">ТВОЯ КНИГА МАГІЇ</p>
+            <h3>Заклинання персонажа</h3>
+            <p>Усього відомих заклинань: {characterSpells.length}</p>
+          </div>
+        </header>
+
+        {!loadingCharacterSpells && characterSpells.length > 0 && (
+          <div className="spell-level-summary">
+            {Object.entries(spellsByLevel).map(([label, count]) => (
+              <div className="spell-level-summary-item" key={label}>
+                <span>{label}</span>
+                <strong>{count}</strong>
+              </div>
+            ))}
+          </div>
+        )}
 
         {loadingCharacterSpells ? (
-          <p className="spells-message">Завантаження заклинань…</p>
-        ) : characterSpells.length === 0 ? (
-          <p className="spells-empty">
-            Поки що немає заклинань. Знайди потрібні нижче та додай їх.
+          <p className="spells-message" role="status">
+            Завантаження заклинань персонажа…
           </p>
+        ) : characterSpells.length === 0 ? (
+          <div className="spells-empty">
+            <h4>Книга магії поки порожня</h4>
+            <p>
+              Знайди потрібні заклинання в каталозі нижче та додай їх
+              персонажу.
+            </p>
+          </div>
         ) : (
           <div className="character-spell-list">
             {characterSpells.map((spell) => (
               <article className="character-spell-card" key={spell.id}>
                 <div className="character-spell-info">
-                  <strong>{spell.name}</strong>
-                  <span>
-                    {spell.level === 0 ? 'Заговір' : `Рівень ${spell.level}`}
-                    {' · '}
-                    {spell.school}
-                  </span>
-                  <small>
-                    {spell.casting_time} · {spell.spell_range} · {spell.duration}
-                  </small>
+                  <h4>{spell.name}</h4>
+
+                  <div className="spell-metadata">
+                    <span>
+                      {spell.level === 0
+                        ? 'Заговір'
+                        : `Рівень ${spell.level}`}
+                    </span>
+                    <span>{spell.school}</span>
+                  </div>
+
+                  <p className="spell-details">
+                    <span>Час накладання:</span> {spell.casting_time}
+                  </p>
+
+                  <p className="spell-details">
+                    <span>Дистанція:</span> {spell.spell_range}
+                  </p>
+
+                  <p className="spell-details">
+                    <span>Тривалість:</span> {spell.duration}
+                  </p>
+
+                  {spell.description && (
+                    <p className="spell-description">
+                      {spell.description}
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -203,8 +274,11 @@ export default function CharacterSpells({
                   className="spell-remove-button"
                   disabled={busySpellId !== null}
                   onClick={() => void handleRemoveSpell(spell)}
+                  aria-label={`Видалити заклинання ${spell.name}`}
                 >
-                  {busySpellId === spell.id ? '…' : 'Видалити'}
+                  {busySpellId === spell.id
+                    ? 'Обробка…'
+                    : 'Видалити'}
                 </button>
               </article>
             ))}
@@ -213,28 +287,33 @@ export default function CharacterSpells({
       </section>
 
       <section className="spell-catalogue">
-        <div className="spells-section-heading">
+        <header className="spells-section-heading">
           <div>
+            <p className="spells-eyebrow">КОМПЕНДІУМ</p>
             <h3>Каталог заклинань</h3>
-            <p>Знайди заклинання та додай його персонажу</p>
+            <p>Досліджуй магію та обирай нові заклинання.</p>
           </div>
-        </div>
+
+          <span className="spell-catalogue-count">
+            {loadingCatalogue ? '…' : availableSpells.length}
+          </span>
+        </header>
 
         <div className="character-spell-filters">
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Пошук за назвою…"
-            aria-label="Пошук заклинань"
+            placeholder="Шукати заклинання…"
+            aria-label="Пошук заклинань за назвою"
           />
 
           <select
             value={level}
             onChange={(event) => setLevel(event.target.value)}
-            aria-label="Фільтр за рівнем"
+            aria-label="Фільтр за рівнем заклинання"
           >
-            {spellLevels.map((item) => (
+            {SPELL_LEVELS.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}
               </option>
@@ -255,34 +334,66 @@ export default function CharacterSpells({
           </select>
         </div>
 
-        {error && (
-          <p className="character-spells-error" role="alert">
-            {error}
-          </p>
-        )}
-
         {loadingCatalogue ? (
-          <p className="spells-message">Завантаження каталогу…</p>
-        ) : availableSpells.length === 0 ? (
-          <p className="spells-empty">
-            Заклинань за цими критеріями не знайдено.
+          <p className="spells-message" role="status">
+            Завантаження каталогу…
           </p>
+        ) : availableSpells.length === 0 ? (
+          <div className="spells-empty">
+            <h4>Заклинань не знайдено</h4>
+            <p>
+              Спробуй змінити пошуковий запит або вибрати інші фільтри.
+            </p>
+
+            {(search || level || school) && (
+              <button
+                type="button"
+                className="spell-reset-filters"
+                onClick={() => {
+                  setSearch('')
+                  setLevel('')
+                  setSchool('')
+                }}
+              >
+                Скинути фільтри
+              </button>
+            )}
+          </div>
         ) : (
           <div className="available-spell-list">
             {availableSpells.map((spell) => {
               const alreadyAdded = characterSpellIds.has(spell.id)
+              const isBusy = busySpellId === spell.id
 
               return (
                 <article className="available-spell-card" key={spell.id}>
                   <div className="character-spell-info">
-                    <strong>{spell.name}</strong>
-                    <span>
-                      {spell.level === 0 ? 'Заговір' : `Рівень ${spell.level}`}
-                      {' · '}
-                      {spell.school}
-                    </span>
-                    <small>{spell.casting_time} · {spell.spell_range}</small>
-                    <p>{spell.description}</p>
+                    <h4>{spell.name}</h4>
+
+                    <div className="spell-metadata">
+                      <span>
+                        {spell.level === 0
+                          ? 'Заговір'
+                          : `Рівень ${spell.level}`}
+                      </span>
+                      <span>{spell.school}</span>
+                    </div>
+
+                    <p className="spell-details">
+                      <span>Час накладання:</span> {spell.casting_time}
+                    </p>
+
+                    <p className="spell-details">
+                      <span>Дистанція:</span> {spell.spell_range}
+                    </p>
+
+                    <p className="spell-details">
+                      <span>Тривалість:</span> {spell.duration}
+                    </p>
+
+                    <p className="spell-description">
+                      {spell.description || 'Опис відсутній.'}
+                    </p>
                   </div>
 
                   <button
@@ -290,10 +401,15 @@ export default function CharacterSpells({
                     className="spell-add-button"
                     disabled={alreadyAdded || busySpellId !== null}
                     onClick={() => void handleAddSpell(spell)}
+                    aria-label={
+                      alreadyAdded
+                        ? `${spell.name} вже додано`
+                        : `Додати ${spell.name} персонажу`
+                    }
                   >
                     {alreadyAdded
                       ? 'Додано'
-                      : busySpellId === spell.id
+                      : isBusy
                         ? 'Додавання…'
                         : '+ Додати'}
                   </button>
