@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from schemas.background import CharacterBackgroundResponse
 from schemas.character_class import CharacterClassResponse
+from schemas.patch import PatchModel
 from schemas.race import RaceResponse
 
 
@@ -50,7 +51,22 @@ class CharacterResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class CharacterUpdate(BaseModel):
+class CharacterUpdate(PatchModel):
+    non_nullable_fields = frozenset(
+        {
+            "name",
+            "race_id",
+            "class_id",
+            "background_id",
+            "level",
+            "strength",
+            "dexterity",
+            "constitution",
+            "intelligence",
+            "wisdom",
+            "charisma",
+        }
+    )
     name: str | None = Field(None, min_length=1, max_length=50)
     race_id: int | None = None
     class_id: int | None = None

@@ -3,6 +3,8 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
+from schemas.patch import PatchModel
+
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -25,8 +27,10 @@ class UserRole(str, Enum):
     ADMIN = "admin"
 
 
-class UserUpdate(BaseModel):
+class UserUpdate(PatchModel):
     """Admin-side edit. An admin may reset a password without knowing it."""
+
+    non_nullable_fields = frozenset({"email", "nickname", "role", "password"})
 
     email: EmailStr | None = None
     nickname: str | None = Field(None, min_length=1, max_length=50)
@@ -34,9 +38,11 @@ class UserUpdate(BaseModel):
     password: str | None = Field(None, min_length=8)
 
 
-class UserSelfUpdate(BaseModel):
+class UserSelfUpdate(PatchModel):
     """Fields a user may change on their own account. Deliberately has no
     `role`, so a user cannot promote themselves via PATCH /users/me."""
+
+    non_nullable_fields = frozenset({"email", "nickname", "password"})
 
     email: EmailStr | None = None
     nickname: str | None = Field(None, min_length=1, max_length=50)

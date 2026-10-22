@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
+from schemas.patch import PatchModel
+
 
 class RaceResponse(BaseModel):
     id: int
@@ -16,7 +18,9 @@ class RaceCreate(BaseModel):
     speed: int = Field(ge=1)
 
 
-class RaceUpdate(BaseModel):
+class RaceUpdate(PatchModel):
+    non_nullable_fields = frozenset({"name", "description", "speed"})
+
     name: str | None = Field(None, min_length=1, max_length=50)
     description: str | None = Field(None, min_length=1, max_length=300)
     speed: int | None = Field(None, ge=1)

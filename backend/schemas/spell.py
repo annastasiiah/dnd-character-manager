@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
+from schemas.patch import PatchModel
+
 
 class SpellResponse(BaseModel):
     id: int
@@ -37,7 +39,19 @@ class SpellCreate(BaseModel):
     description: str = Field(min_length=1)
 
 
-class SpellUpdate(BaseModel):
+class SpellUpdate(PatchModel):
+    non_nullable_fields = frozenset(
+        {
+            "name",
+            "level",
+            "school",
+            "casting_time",
+            "spell_range",
+            "duration",
+            "description",
+        }
+    )
+
     name: str | None = Field(None, min_length=1, max_length=100)
     level: int | None = Field(None, ge=0, le=9)
     school: str | None = Field(None, min_length=1, max_length=50)

@@ -346,6 +346,26 @@ def test_create_character_validation(client, auth_headers, character_payload):
     assert response.status_code == 422
 
 
+def test_update_character_rejects_null_for_non_nullable_field(
+    client,
+    auth_headers,
+    character_payload,
+):
+    character_id = create_character(
+        client,
+        auth_headers,
+        character_payload,
+    ).json()["id"]
+
+    response = client.patch(
+        f"/characters/{character_id}",
+        headers=auth_headers,
+        json={"strength": None},
+    )
+
+    assert response.status_code == 422
+
+
 def test_create_character_with_ability_score_below_min(
     client,
     auth_headers,

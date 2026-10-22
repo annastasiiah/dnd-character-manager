@@ -1,5 +1,6 @@
-
 from pydantic import BaseModel, ConfigDict, Field
+
+from schemas.patch import PatchModel
 
 
 class CharacterBackgroundResponse(BaseModel):
@@ -17,7 +18,9 @@ class CharacterBackgroundCreate(BaseModel):
     skill_proficiencies: list[str] | None = None
 
 
-class CharacterBackgroundUpdate(BaseModel):
+class CharacterBackgroundUpdate(PatchModel):
+    non_nullable_fields = frozenset({"name"})
+
     name: str | None = Field(None, min_length=1, max_length=50)
     description: str | None = None
     skill_proficiencies: list[str] | None = None
